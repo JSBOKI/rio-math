@@ -1859,6 +1859,389 @@ var RioHome = (function () {
 /* ==== RIO-HOME END ==== */
 </script>
 <script>
+/* ==== RIO-SCRATCH START (scratch paper — edit src/scratch-block.js, then node dev/sync-blocks.js) ==== */
+var RioScratch = (function () {
+  'use strict';
+  var COLORS = [
+    { id: 'black', hex: '#1d2433', label: 'Black' },
+    { id: 'blue', hex: '#3867ff', label: 'Blue' },
+    { id: 'red', hex: '#e5484d', label: 'Red' }
+  ];
+  var PEN_W = 0.009;
+  var ERASER_W = 0.055;
+  var MAX_STROKE_PTS = 4000;
+  var openState = null;
+
+  function ensureCss() {
+    if (document.getElementById('rioScratchCss')) return;
+    var s = document.createElement('style');
+    s.id = 'rioScratchCss';
+    s.textContent = [
+      '.scratch-open{display:inline-flex;align-items:center;margin-top:10px;font:inherit;font-weight:800;font-size:.92em;min-height:48px;padding:8px 14px;border-radius:12px;border:2px solid #c5d3fb;background:#f4f7ff;color:#2447c7;cursor:pointer;touch-action:manipulation}',
+      '.scratch-open.has{border-color:#8fd3ab;background:#f3fbf6;color:#145c33}',
+      '.scratch-att{margin-top:8px}',
+      '.scratch-att .att-head{font-weight:800;color:#145c33}',
+      '.scratch-att img{display:block;width:100%;max-width:280px;border-radius:12px;border:2px solid #c5d3fb;background:#fffdf8;margin:6px 0}',
+      '.scratch-pad{position:fixed;inset:0;z-index:28;background:#efeae0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);overscroll-behavior:none}',
+      '.scratch-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-bottom:1px solid #e4dccd}',
+      '.scratch-bar h2{flex:1;margin:0;font-size:1.02em;line-height:1.2;min-width:0}',
+      '.scratch-x{width:48px;height:48px;border-radius:14px;border:2px solid #d6def0;background:#fff;font:inherit;font-weight:800;font-size:1.25em;cursor:pointer;touch-action:manipulation}',
+      '.scratch-prob{flex:0 0 auto;max-height:22vh;overflow:auto;-webkit-overflow-scrolling:touch;background:#fffdf8;padding:8px 14px 10px;border-bottom:1px solid #e4dccd;touch-action:pan-y;overscroll-behavior:contain}',
+      '.scratch-prob .h{font-weight:800}',
+      '.scratch-prob .t{white-space:pre-wrap;font-size:.82em;line-height:1.35;margin-top:4px}',
+      '.scratch-stage{flex:1 1 auto;min-height:120px;position:relative;background:#fffdf8;touch-action:none}',
+      '.scratch-stage canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;background:#fffdf8}',
+      '.scratch-tools{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e4dccd}',
+      '.scratch-tools button{min-width:44px;min-height:44px;border-radius:12px;border:2px solid #d6def0;background:#fff;font:inherit;font-weight:800;font-size:.82em;padding:4px 10px;cursor:pointer;touch-action:manipulation;color:#1d2433}',
+      '.scratch-swatch{width:44px;padding:0}',
+      '.scratch-swatch[aria-pressed=true]{box-shadow:0 0 0 3px #1d2433}',
+      '.scratch-tools button[aria-pressed=true].is-on{background:#fff4d6;border-color:#e0b000}',
+      '.scratch-tools button:disabled{opacity:.4}',
+      '.scratch-msg{flex:1 1 100%;font-size:.78em;color:#5b6475;min-height:1.2em}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  function storageKey(date, id) {
+    return 'rio-math-scratch-' + String(date || '') + '-' + String(id || '').replace(/[^A-Za-z0-9_-]/g, '_');
+  }
+  function load(date, id) {
+    try {
+      var raw = localStorage.getItem(storageKey(date, id));
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (!o || o.v !== 1 || !Array.isArray(o.strokes)) return null;
+      return o;
+    } catch (e) { return null; }
+  }
+  function has(date, id) {
+    var d = load(date, id);
+    return !!(d && d.strokes.length);
+  }
+  function saveDoc(date, id, doc) {
+    try {
+      var k = storageKey(date, id);
+      if (!doc || !doc.strokes || !doc.strokes.length) { localStorage.removeItem(k); return true; }
+      localStorage.setItem(k, JSON.stringify(doc));
+      return true;
+    } catch (e) { return false; }
+  }
+  function round4(n) { return Math.round(n * 10000) / 10000; }
+
+  function drawLines(ctx, w, h) {
+    ctx.save();
+    ctx.strokeStyle = '#f3e6c8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    var gap = Math.max(22, w * 0.07);
+    for (var y = gap; y < h; y += gap) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawStroke(ctx, s, w, h) {
+    var pts = s.p;
+    if (!pts || !pts.length) return;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1, (s.w || PEN_W) * w);
+    ctx.strokeStyle = s.e ? '#fffdf8' : (s.c || COLORS[0].hex);
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.globalCompositeOperation = 'source-over';
+    var x = pts[0][0] * w, y = pts[0][1] * h;
+    if (pts.length === 1) {
+      ctx.beginPath();
+      ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    if (pts.length === 2) ctx.lineTo(pts[1][0] * w, pts[1][1] * h);
+    else {
+      var i, mx, my, last;
+      for (i = 1; i < pts.length - 1; i++) {
+        mx = ((pts[i][0] + pts[i + 1][0]) / 2) * w;
+        my = ((pts[i][1] + pts[i + 1][1]) / 2) * h;
+        ctx.quadraticCurveTo(pts[i][0] * w, pts[i][1] * h, mx, my);
+      }
+      last = pts[pts.length - 1];
+      ctx.lineTo(last[0] * w, last[1] * h);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  function paintDoc(ctx, doc, w, h) {
+    ctx.fillStyle = '#fffdf8';
+    ctx.fillRect(0, 0, w, h);
+    drawLines(ctx, w, h);
+    (doc.strokes || []).forEach(function (s) { drawStroke(ctx, s, w, h); });
+  }
+  function exportJpeg(date, id) {
+    var doc = load(date, id);
+    if (!doc || !doc.strokes.length) return null;
+    var aspect = doc.aspect > 0.2 && doc.aspect < 5 ? doc.aspect : 0.7;
+    var w = 1400, h = Math.round(w / aspect);
+    if (h > 1600) { h = 1600; w = Math.round(h * aspect); }
+    if (h < 400) h = 400;
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    paintDoc(ctx, doc, w, h);
+    var url = c.toDataURL('image/jpeg', 0.85);
+    if (url.length > 6 * 1024 * 1024) url = c.toDataURL('image/jpeg', 0.6);
+    return url;
+  }
+
+  function open(opts) {
+    opts = opts || {};
+    ensureCss();
+    if (openState) openState.close();
+    var date = opts.date, id = opts.id;
+    var saved = load(date, id);
+    var strokes = saved && saved.strokes ? saved.strokes.map(function (s) {
+      return { c: s.c, w: s.w, e: !!s.e, p: (s.p || []).map(function (pt) { return [pt[0], pt[1]]; }) };
+    }) : [];
+    var color = COLORS[0].hex, eraser = false, attached = !!opts.attached;
+    var cssW = 1, cssH = 1, dprScale = 1, ctx = null, canvas, clearArmed = false, clearTimer = 0;
+    var drawing = null, raf = 0, savedOk = true;
+    var meta = document.querySelector('meta[name=viewport]');
+    var prevViewport = meta ? meta.getAttribute('content') : null;
+
+    var pad = document.createElement('div');
+    pad.className = 'scratch-pad';
+    pad.id = 'scratchPad';
+    pad.setAttribute('role', 'dialog');
+    pad.setAttribute('aria-label', 'Scratch paper');
+
+    var bar = document.createElement('div');
+    bar.className = 'scratch-bar';
+    var title = document.createElement('h2');
+    title.textContent = 'Scratch paper';
+    var x = document.createElement('button');
+    x.type = 'button'; x.className = 'scratch-x'; x.id = 'scratchClose';
+    x.setAttribute('aria-label', 'Close'); x.textContent = '✕';
+    bar.appendChild(title); bar.appendChild(x);
+
+    var prob = document.createElement('div');
+    prob.className = 'scratch-prob';
+    var ph = document.createElement('div');
+    ph.className = 'h'; ph.textContent = opts.heading || '';
+    var pt = document.createElement('div');
+    pt.className = 't'; pt.id = 'scratchText'; pt.textContent = opts.text || '';
+    if (opts.heading) prob.appendChild(ph);
+    prob.appendChild(pt);
+
+    var stage = document.createElement('div');
+    stage.className = 'scratch-stage';
+    canvas = document.createElement('canvas');
+    canvas.id = 'scratchCanvas';
+    canvas.setAttribute('aria-label', 'Drawing pad');
+    stage.appendChild(canvas);
+
+    var tools = document.createElement('div');
+    tools.className = 'scratch-tools';
+    var msg = document.createElement('div');
+    msg.className = 'scratch-msg'; msg.id = 'scratchMsg';
+
+    function setMsg(t) { msg.textContent = t || ''; }
+    function persist() {
+      savedOk = saveDoc(date, id, { v: 1, aspect: cssW / Math.max(1, cssH), strokes: strokes });
+      if (!savedOk) setMsg('Could not save on this device. The drawing is still here until you close it.');
+      else if (!clearArmed) setMsg(strokes.length ? 'Saved on this device.' : '');
+    }
+    function syncAttach() {
+      if (!strokes.length && attached) {
+        attached = false;
+        if (opts.onDetach) opts.onDetach();
+      }
+    }
+    function redraw() {
+      if (!ctx) return;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#fffdf8';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dprScale, 0, 0, dprScale, 0, 0);
+      drawLines(ctx, cssW, cssH);
+      strokes.forEach(function (s) { drawStroke(ctx, s, cssW, cssH); });
+    }
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      cssW = Math.max(1, rect.width);
+      cssH = Math.max(1, rect.height);
+      dprScale = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.round(cssW * dprScale));
+      canvas.height = Math.max(1, Math.round(cssH * dprScale));
+      ctx = canvas.getContext('2d');
+      redraw();
+    }
+    function schedule() {
+      if (raf) return;
+      raf = requestAnimationFrame(function () { raf = 0; redraw(); });
+    }
+
+    var swatches = COLORS.map(function (col) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'scratch-swatch';
+      b.setAttribute('data-pen', col.id);
+      b.setAttribute('aria-label', col.label);
+      b.style.background = col.hex;
+      b.addEventListener('click', function () {
+        color = col.hex; eraser = false; disarmClear(); paintTools();
+      });
+      return b;
+    });
+    var eraserBtn = document.createElement('button');
+    eraserBtn.type = 'button'; eraserBtn.id = 'scratchEraser'; eraserBtn.textContent = 'Eraser';
+    eraserBtn.addEventListener('click', function () { eraser = !eraser; disarmClear(); paintTools(); });
+    var undoBtn = document.createElement('button');
+    undoBtn.type = 'button'; undoBtn.id = 'scratchUndo'; undoBtn.textContent = 'Undo';
+    undoBtn.addEventListener('click', function () {
+      if (!strokes.length) return;
+      strokes.pop(); disarmClear(); syncAttach(); persist(); redraw(); paintTools();
+    });
+    var clearBtn = document.createElement('button');
+    clearBtn.type = 'button'; clearBtn.id = 'scratchClear'; clearBtn.textContent = 'Clear';
+    function disarmClear() {
+      clearArmed = false; clearBtn.textContent = 'Clear';
+      if (clearTimer) { clearTimeout(clearTimer); clearTimer = 0; }
+    }
+    clearBtn.addEventListener('click', function () {
+      if (!strokes.length) return;
+      if (!clearArmed) {
+        clearArmed = true; clearBtn.textContent = 'Tap again to clear';
+        setMsg('Tap Clear again to erase the whole page.');
+        clearTimer = setTimeout(disarmClear, 2500);
+        return;
+      }
+      strokes.length = 0; disarmClear(); syncAttach(); persist(); redraw(); paintTools(); setMsg('Cleared.');
+    });
+    var attachBtn = document.createElement('button');
+    attachBtn.type = 'button'; attachBtn.id = 'scratchAttach';
+    attachBtn.addEventListener('click', function () {
+      disarmClear();
+      if (attached) {
+        attached = false;
+        if (opts.onDetach) opts.onDetach();
+        setMsg('Taken out of your answer. The drawing is still saved here.');
+      } else {
+        if (!strokes.length) { setMsg('Draw something first.'); return; }
+        var ok = opts.onAttach ? opts.onAttach() !== false : false;
+        if (!ok) { setMsg('Not attached.'); return; }
+        attached = true;
+        setMsg('This drawing will be sent with your answer.');
+      }
+      paintTools();
+    });
+
+    function paintTools() {
+      swatches.forEach(function (b, i) {
+        b.setAttribute('aria-pressed', (!eraser && color === COLORS[i].hex) ? 'true' : 'false');
+      });
+      eraserBtn.setAttribute('aria-pressed', eraser ? 'true' : 'false');
+      eraserBtn.classList.toggle('is-on', eraser);
+      undoBtn.disabled = !strokes.length;
+      clearBtn.disabled = !strokes.length && !clearArmed;
+      attachBtn.disabled = !strokes.length && !attached;
+      attachBtn.textContent = attached ? 'Take out of my answer' : 'Attach to my answer';
+      attachBtn.setAttribute('aria-pressed', attached ? 'true' : 'false');
+      attachBtn.classList.toggle('is-on', attached);
+    }
+
+    swatches.forEach(function (b) { tools.appendChild(b); });
+    tools.appendChild(eraserBtn);
+    tools.appendChild(undoBtn);
+    tools.appendChild(clearBtn);
+    tools.appendChild(attachBtn);
+    tools.appendChild(msg);
+    pad.appendChild(bar); pad.appendChild(prob); pad.appendChild(stage); pad.appendChild(tools);
+
+    function normPoint(e) {
+      var rect = canvas.getBoundingClientRect();
+      var nx = (e.clientX - rect.left) / Math.max(1, rect.width);
+      var ny = (e.clientY - rect.top) / Math.max(1, rect.height);
+      if (nx < -0.02 || ny < -0.02 || nx > 1.02 || ny > 1.02) return null;
+      return [round4(Math.max(0, Math.min(1, nx))), round4(Math.max(0, Math.min(1, ny)))];
+    }
+    function pushPoint(stroke, pt) {
+      if (!pt || stroke.p.length >= MAX_STROKE_PTS) return;
+      var prev = stroke.p[stroke.p.length - 1];
+      if (prev && Math.abs(prev[0] - pt[0]) < 0.0015 && Math.abs(prev[1] - pt[1]) < 0.0015) return;
+      stroke.p.push(pt);
+    }
+    function onDown(e) {
+      if (drawing) return;
+      if (e.cancelable) e.preventDefault();
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+      disarmClear();
+      var stroke = { c: color, w: eraser ? ERASER_W : PEN_W, e: eraser, p: [] };
+      pushPoint(stroke, normPoint(e));
+      strokes.push(stroke);
+      drawing = { id: e.pointerId, stroke: stroke };
+      schedule();
+    }
+    function onMove(e) {
+      if (!drawing || e.pointerId !== drawing.id) return;
+      if (e.cancelable) e.preventDefault();
+      var list = (e.getCoalescedEvents && e.getCoalescedEvents()) || [e];
+      list.forEach(function (ev) { pushPoint(drawing.stroke, normPoint(ev)); });
+      schedule();
+    }
+    function onUp(e) {
+      if (!drawing || e.pointerId !== drawing.id) return;
+      if (e.cancelable) e.preventDefault();
+      pushPoint(drawing.stroke, normPoint(e));
+      if (!drawing.stroke.p.length) strokes.pop();
+      drawing = null;
+      syncAttach();
+      persist();
+      redraw();
+      paintTools();
+    }
+
+    canvas.addEventListener('pointerdown', onDown, { passive: false });
+    canvas.addEventListener('pointermove', onMove, { passive: false });
+    canvas.addEventListener('pointerup', onUp, { passive: false });
+    canvas.addEventListener('pointercancel', onUp, { passive: false });
+    stage.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
+
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    function onResize() { resize(); }
+    function close() {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      disarmClear();
+      persist();
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
+      if (window.visualViewport) window.visualViewport.removeEventListener('resize', onResize);
+      if (meta && prevViewport != null) meta.setAttribute('content', prevViewport);
+      document.body.classList.remove('tool-open');
+      if (pad.parentNode) pad.parentNode.removeChild(pad);
+      if (openState && openState.pad === pad) openState = null;
+      if (opts.onClose) opts.onClose();
+    }
+    x.addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
+
+    if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+    document.body.classList.add('tool-open');
+    document.body.appendChild(pad);
+    paintTools();
+    if (strokes.length) setMsg(attached ? 'This drawing will be sent with your answer.' : 'Saved on this device.');
+    openState = { close: close, pad: pad };
+    requestAnimationFrame(function () { resize(); requestAnimationFrame(resize); });
+  }
+
+  ensureCss();
+  return { has: has, load: load, exportJpeg: exportJpeg, open: open, storageKey: storageKey };
+})();
+/* ==== RIO-SCRATCH END ==== */
+</script>
+<script>
 window.__rioStart = function () {
   'use strict';
   var app = document.getElementById('app');
@@ -1866,6 +2249,7 @@ window.__rioStart = function () {
   var answers = {};   // fieldId -> string
   var photos = {};    // partId -> [dataUrl]
   var graphs = {};    // partId -> { axes, items: [{input, label, color}], savedAt }  (graph-tool graphs put in an answer)
+  var scratchOn = {}; // partId -> true when that problem's scratch drawing should be sent as a picture
   var startedAt = new Date().toISOString();
   var storeKey = test ? ('rio-math-draft-' + test.date) : null;
   var M = RioMath;
@@ -1910,7 +2294,7 @@ window.__rioStart = function () {
 
   function saveDraft() {
     if (!storeKey) return;
-    localStorage.setItem(storeKey, JSON.stringify({ answers: answers, photos: photos, graphs: graphs }));
+    localStorage.setItem(storeKey, JSON.stringify({ answers: answers, photos: photos, graphs: graphs, scratchOn: scratchOn }));
     updateProgress();
   }
 
@@ -1982,10 +2366,11 @@ window.__rioStart = function () {
     var n = 0;
     Object.keys(photos).forEach(function (k) { n += (photos[k] || []).length; });
     Object.keys(graphs).forEach(function (k) { if (graphs[k]) n++; });
+    Object.keys(scratchOn).forEach(function (k) { if (scratchOn[k] && test && RioScratch.has(test.date, k)) n++; });
     return n;
   }
   function tooManyPictures() {
-    alertModal('🖼️', 'That\'s a lot of pictures', 'You can send up to ' + MAX_PICTURES + ' pictures (photos + graphs) at once. Remove one first.');
+    alertModal('🖼️', 'That\'s a lot of pictures', 'You can send up to ' + MAX_PICTURES + ' pictures (photos, graphs, and scratch paper) at once. Remove one first.');
   }
 
   function paperEl(p) {
@@ -2046,8 +2431,72 @@ window.__rioStart = function () {
   }
   function saveDraftSafe() {
     try { saveDraft(); } catch (e) { // photos may be too big for localStorage; keep answers (and graph settings) at least
-      store(storeKey, JSON.stringify({ answers: answers, photos: {}, graphs: graphs })); updateProgress();
+      store(storeKey, JSON.stringify({ answers: answers, photos: {}, graphs: graphs, scratchOn: scratchOn })); updateProgress();
     }
+  }
+
+  function tableText(t) {
+    if (!t || !t.columns) return '';
+    var lines = [t.columns.join('  |  ')];
+    (t.rows || []).forEach(function (r) { lines.push((r || []).join('  |  ')); });
+    return lines.join('\n');
+  }
+  function scratchHeading(q, p) {
+    var h = 'Question ' + q.number;
+    if (p && p.label) h += ' · ' + p.label;
+    if (q.title) h += ' — ' + q.title;
+    return h;
+  }
+  function scratchText(q, p) {
+    var bits = [];
+    if (q.prompt) bits.push(q.prompt);
+    var qt = tableText(q.table); if (qt) bits.push(qt);
+    if (p && p.prompt) bits.push((p.label ? p.label + '. ' : '') + p.prompt);
+    var pt = p ? tableText(p.table) : ''; if (pt) bits.push(pt);
+    return bits.join('\n\n');
+  }
+  function scratchSlot(q, p) {
+    var id = p ? p.id : ('q' + q.number);
+    var btn = el('button', { type: 'button', class: 'scratch-open', 'data-scratch': id, text: '📝 Scratch paper' });
+    var row = el('div', { id: 'scratch-att-' + id });
+    function paint() {
+      var saved = test && RioScratch.has(test.date, id);
+      btn.textContent = saved ? '📝 Scratch paper · saved' : '📝 Scratch paper';
+      btn.classList.toggle('has', !!saved);
+      row.innerHTML = '';
+      row.className = '';
+      if (scratchOn[id] && !saved) { delete scratchOn[id]; saveDraftSafe(); }
+      if (!(scratchOn[id] && saved)) return;
+      var jpeg = null;
+      try { jpeg = RioScratch.exportJpeg(test.date, id); } catch (e) {}
+      row.className = 'scratch-att';
+      row.appendChild(el('div', { class: 'att-head', text: '📝 Scratch paper is in your answer' }));
+      if (jpeg) row.appendChild(el('img', { src: jpeg, alt: 'Scratch paper for ' + scratchHeading(q, p) }));
+      row.appendChild(el('button', { type: 'button', class: 'photo-btn', text: 'Take it out', onclick: function () {
+        delete scratchOn[id]; saveDraftSafe(); paint();
+      } }));
+    }
+    btn.addEventListener('click', function () {
+      RioScratch.open({
+        date: test.date,
+        id: id,
+        heading: scratchHeading(q, p),
+        text: scratchText(q, p),
+        attached: !!scratchOn[id],
+        onAttach: function () {
+          if (scratchOn[id]) return true;
+          if (!RioScratch.has(test.date, id)) return false;
+          if (pictureCount() >= MAX_PICTURES) { tooManyPictures(); return false; }
+          scratchOn[id] = true;
+          saveDraftSafe();
+          return true;
+        },
+        onDetach: function () { delete scratchOn[id]; saveDraftSafe(); },
+        onClose: paint
+      });
+    });
+    paint();
+    return el('div', { class: 'scratch-slot' }, [btn, row]);
   }
 
   function render() {
@@ -2069,7 +2518,7 @@ window.__rioStart = function () {
     }
     try {
       var saved = JSON.parse(load(storeKey) || 'null');
-      if (saved) { answers = saved.answers || {}; photos = saved.photos || {}; graphs = saved.graphs || {}; }
+      if (saved) { answers = saved.answers || {}; photos = saved.photos || {}; graphs = saved.graphs || {}; scratchOn = saved.scratchOn || {}; }
     } catch (e) {}
 
     (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) {
@@ -2110,11 +2559,13 @@ window.__rioStart = function () {
           el('div', null, [p.label ? el('span', { class: 'plabel', text: p.label }) : null, el('span', { class: 'pprompt', text: p.prompt || '' })]),
           table(p.table)
         ]);
+        partEl.appendChild(scratchSlot(q, p));
         if (p.type === 'info') partEl.appendChild(el('div', { class: 'info', text: 'Nothing to type here — just read it.' }));
         if (p.type === 'paper') partEl.appendChild(paperEl(p));
         fieldsForPart(p).forEach(function (f) { partEl.appendChild(fieldEl(f)); });
         card.appendChild(partEl);
       });
+      if (!(q.parts || []).length) card.appendChild(scratchSlot(q, null));
       app.appendChild(card);
     });
     app.appendChild(otherDays());
@@ -2192,9 +2643,14 @@ window.__rioStart = function () {
 
   /** Answers + pictures exactly as they are sent. Graph-tool graphs go in as a PNG "photo" of their part
    *  (same path as camera photos, first so the 8-picture limit never drops them) plus a text description
-   *  appended to that part's notes answer, so the grader can read the settings without opening the picture. */
+   *  appended to that part's notes answer, so the grader can read the settings without opening the picture.
+   *  Attached scratch-paper drawings go next, as a JPEG of that problem, on the same photo path. */
+  function scratchJpegBytes(url) {
+    var b64 = String(url || '').split(',')[1] || '';
+    return Math.floor(b64.length * 3 / 4);
+  }
   function buildSubmission() {
-    var sendAnswers = {}, photoList = [], graphCount = 0;
+    var sendAnswers = {}, photoList = [], graphCount = 0, scratchCount = 0;
     Object.keys(answers).forEach(function (k) { sendAnswers[k] = answers[k]; });
     Object.keys(graphs).forEach(function (pid) {
       var g = graphs[pid];
@@ -2207,8 +2663,16 @@ window.__rioStart = function () {
       sendAnswers[key] = notes ? notes + '\n\n' + desc : desc;
       graphCount++;
     });
+    Object.keys(scratchOn).forEach(function (pid) {
+      if (!scratchOn[pid] || !test || !RioScratch.has(test.date, pid)) return;
+      var jpeg = null;
+      try { jpeg = RioScratch.exportJpeg(test.date, pid); } catch (e) {}
+      if (!jpeg || scratchJpegBytes(jpeg) > 8 * 1024 * 1024) return;
+      photoList.push({ partId: pid, dataUrl: jpeg });
+      scratchCount++;
+    });
     Object.keys(photos).forEach(function (pid) { (photos[pid] || []).forEach(function (d) { photoList.push({ partId: pid, dataUrl: d }); }); });
-    return { answers: sendAnswers, photos: photoList.slice(0, MAX_PICTURES), graphCount: graphCount };
+    return { answers: sendAnswers, photos: photoList.slice(0, MAX_PICTURES), graphCount: graphCount, scratchCount: scratchCount };
   }
 
   function doSubmit() {
@@ -2231,8 +2695,13 @@ window.__rioStart = function () {
         var when = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         store('rio-math-sent-' + test.date, when);
         showSentBanner(when);
-        var nGraphs = Math.min(built.graphCount, (res && res.photos) || 0), nPhotos = Math.max(0, ((res && res.photos) || 0) - nGraphs);
-        var extra = (nGraphs ? ' · ' + nGraphs + ' graph' + (nGraphs === 1 ? '' : 's') : '') + (nPhotos ? ' · ' + nPhotos + ' photo' + (nPhotos === 1 ? '' : 's') : '');
+        var savedPics = (res && res.photos) || 0;
+        var nGraphs = Math.min(built.graphCount, savedPics);
+        var nScratch = Math.min(built.scratchCount || 0, Math.max(0, savedPics - nGraphs));
+        var nPhotos = Math.max(0, savedPics - nGraphs - nScratch);
+        var extra = (nGraphs ? ' · ' + nGraphs + ' graph' + (nGraphs === 1 ? '' : 's') : '')
+          + (nScratch ? ' · ' + nScratch + ' scratch paper' + (nScratch === 1 ? '' : 's') : '')
+          + (nPhotos ? ' · ' + nPhotos + ' photo' + (nPhotos === 1 ? '' : 's') : '');
         openModal([
           el('div', { class: 'emoji', text: '🎉' }),
           el('h2', { text: 'Sent!' }),
