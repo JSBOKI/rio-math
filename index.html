@@ -207,6 +207,84 @@
     .stamp { grid-template-columns: 1fr; }
     .btn { padding: 14px 18px; }
   }
+  /* ---------- Rio's home screen ---------- */
+  body.is-home main { padding-bottom: 28px; }
+  .home h1 { margin: 2px 0 0; font-size: 1.7em; line-height: 1.15; }
+  .home-date { margin: 2px 0 12px; color: var(--muted); font-weight: 700; }
+  .home-today { display: block; width: 100%; text-align: left; border: none; border-radius: 22px; padding: 16px 16px 14px;
+    color: #fff; cursor: pointer; touch-action: manipulation; background: linear-gradient(135deg, #3867ff, #7b5cff);
+    box-shadow: 0 8px 20px rgba(56,103,255,.28); }
+  .home-today:disabled { opacity: .65; cursor: default; }
+  .home-today .k { font-size: .75em; font-weight: 800; letter-spacing: .06em; opacity: .92; }
+  .home-today .t { font-size: 1.55em; font-weight: 900; line-height: 1.1; margin: 2px 0 4px; }
+  .home-today .s { font-size: .88em; font-weight: 700; line-height: 1.3; }
+  .home-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+  .home-tile { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px; min-height: 88px; }
+  .home-tile .k { font-size: .72em; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .home-tile .v { font-size: 1.35em; font-weight: 900; line-height: 1.15; margin-top: 2px; }
+  .home-tile .s { font-size: .75em; color: var(--muted); margin-top: 2px; }
+  .home-tile.good { background: #effaf3; border-color: #b7e4c7; }
+  .home-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 14px 12px 12px; margin: 0 0 14px;
+    box-shadow: 0 2px 8px rgba(29,36,51,.05); }
+  .home-card h2 { margin: 0 0 10px; font-size: 1.15em; }
+  .home-card h3 { margin: 0 0 6px; font-size: .95em; }
+  .home-cal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .home-cal-head h2 { flex: 1; text-align: center; margin: 0; font-size: 1.1em; }
+  .home-nav { width: 44px; height: 44px; border-radius: 12px; border: 2px solid #c5d3fb; background: #fff; font: inherit;
+    font-size: 1.4em; font-weight: 800; color: var(--accent-dark); cursor: pointer; touch-action: manipulation; }
+  .home-nav:disabled { opacity: .35; cursor: default; }
+  .home-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .home-dow { text-align: center; font-size: .68em; font-weight: 800; color: var(--muted); padding-bottom: 2px; }
+  .home-day { min-height: 52px; border-radius: 12px; border: 1px solid transparent; background: #f4f7ff; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; font: inherit; font-weight: 800; color: var(--ink);
+    padding: 2px 0 3px; line-height: 1.05; }
+  button.home-day { cursor: pointer; touch-action: manipulation; }
+  .home-day.empty { background: transparent; border-color: transparent; }
+  .home-day .dn { font-size: .78em; }
+  .home-day .ds { font-size: .62em; font-weight: 800; }
+  .home-day.st-none { background: transparent; color: #b0b8c9; font-weight: 700; }
+  .home-day.st-graded { color: #fff; }
+  .home-day.st-awaiting { background: #fff4d6; color: #8a5a00; border-color: #f0d48a; }
+  .home-day.st-missed { background: #eef0f4; color: #8b93a3; border-color: #e1e5ee; }
+  .home-day.st-assigned { background: #e8eeff; color: var(--accent-dark); border-color: #3867ff; }
+  .home-day.st-upcoming { background: #f3f0ff; color: #5b4b8a; border-color: #ddd4f7; }
+  .home-day.is-today { box-shadow: 0 0 0 2px #1d2433; }
+  .home-legend { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; font-size: .72em; color: var(--muted); font-weight: 700; }
+  .home-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .home-legend .sw { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+  .home-legend .graded { background: #2f6fed; }
+  .home-legend .sent { background: #f0d48a; }
+  .home-legend .miss { background: #d5dbe6; }
+  .home-legend .go { background: #e8eeff; box-shadow: inset 0 0 0 2px #3867ff; }
+  .home-legend .soon { background: #ddd4f7; }
+  .home-skill-group { margin-top: 12px; }
+  .home-skill-list { list-style: none; margin: 0; padding: 0; }
+  .home-skill-list li { padding: 8px 0; border-top: 1px solid var(--line); }
+  .home-skill-top { display: flex; justify-content: space-between; gap: 8px; }
+  .home-track { height: 10px; background: #e3e8f5; border-radius: 99px; overflow: hidden; margin: 4px 0; }
+  .home-fill { height: 100%; border-radius: 99px; }
+  .home-skill-list small { color: var(--muted); font-size: .75em; }
+  .home-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .home-chip { font: inherit; font-weight: 800; font-size: .8em; min-height: 44px; padding: 6px 12px; border-radius: 999px;
+    border: 2px solid #c5d3fb; background: #fff; color: var(--ink); cursor: pointer; touch-action: manipulation; }
+  .home-chip[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .home-filter-hint, .home-note, .home-skill-note { font-size: .8em; }
+  .home-filter-hint { margin: 8px 0 0; }
+  .home-test { display: block; width: 100%; text-align: left; font: inherit; background: #f7f9ff; border: 1px solid var(--line);
+    border-radius: 14px; padding: 10px 12px; margin-top: 8px; cursor: pointer; touch-action: manipulation; color: inherit; }
+  div.home-test { cursor: default; }
+  .home-test-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .home-test-top b { font-size: .82em; }
+  .home-test-title { font-weight: 800; line-height: 1.25; }
+  .home-test-skills { font-size: .75em; color: var(--muted); margin-top: 2px; }
+  .home-pill { flex: 0 0 auto; font-size: .72em; font-weight: 800; color: #fff; background: #8b93a3; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .home-pill.st-awaiting { background: #d97706; }
+  .home-pill.st-missed { background: #8b93a3; }
+  .home-pill.st-assigned { background: #3867ff; }
+  .home-pill.st-upcoming { background: #7b5cff; }
+  .home-cert-all { width: 100%; margin-top: 12px; }
+  a.back-home { display: inline-flex; align-items: center; color: #fff; font-weight: 800; font-size: .85em; text-decoration: none;
+    background: rgba(255,255,255,.2); border-radius: 999px; padding: 0 14px; min-height: 44px; margin-bottom: 8px; }
   /* ---------- Rio's inbox strip (messages from Dad, tokens, certificates, scores) ---------- */
   .rio-strip { margin: 0 0 12px; }
   .rio-strip[hidden] { display: none; }
@@ -1250,9 +1328,535 @@ var RioInbox = (function () {
       if (document.visibilityState === 'visible' && Date.now() - lastLoad > 60000 && !current) load();
     });
   }
-  return { mount: mount, load: load, open: open, close: close, state: function () { return data; } };
+  /** Opens one certificate in the same viewer as the shelf (print + save picture). Pass the certificate object or its id. */
+  function openCert(idOrCert) {
+    var c = idOrCert && typeof idOrCert === 'object' ? idOrCert : null;
+    if (!c && data) {
+      c = (data.certificates || []).filter(function (x) { return x.id === idOrCert; })[0] || null;
+    }
+    if (!c) { open('certs'); return; }
+    ensureOverlay();
+    current = 'cert';
+    overlay.hidden = false;
+    document.body.classList.add('tool-open');
+    showCert(c);
+  }
+  return { mount: mount, load: load, open: open, openCert: openCert, close: close, state: function () { return data; } };
 })();
 /* ==== RIO-INBOX END ==== */
+</script>
+<script>
+/* ==== RIO-HOME START (Rio's opening home screen — edit src/home-block.js, then node dev/sync-blocks.js) ==== */
+var RioHome = (function () {
+  'use strict';
+  var root = null, rio = null, today = '', baseUrl = '', currentTest = null, recent = [], viewY = 0, viewM = 0, picked = [];
+
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (attrs[k] == null) return;
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'class') n.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function svgEl(tag, attrs) {
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function parseIso(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? { y: +m[1], m: +m[2] - 1, d: +m[3] } : null;
+  }
+  function isoOf(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+  function addDays(iso, n) {
+    var p = parseIso(iso); if (!p) return iso;
+    var dt = new Date(Date.UTC(p.y, p.m, p.d + n, 12));
+    return dt.toISOString().slice(0, 10);
+  }
+  function prettyDate(iso) {
+    var p = parseIso(iso); if (!p) return iso || '';
+    var dt = new Date(Date.UTC(p.y, p.m, p.d, 12));
+    try { return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }); }
+    catch (e) { return iso; }
+  }
+  function monthName(y, m) {
+    try { return new Date(Date.UTC(y, m, 1, 12)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }); }
+    catch (e) { return (m + 1) + ' ' + y; }
+  }
+  function shortDay(iso) {
+    var p = parseIso(iso); if (!p) return iso || '';
+    return (p.m + 1) + '/' + p.d;
+  }
+  function slug(s) {
+    return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'general';
+  }
+  function skillLabel(id) {
+    return String(id || '').split('-').filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+  }
+  function num(n) {
+    var x = Math.round(Number(n) * 10) / 10;
+    if (!isFinite(x)) return '0';
+    return Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : String(x);
+  }
+  function scoreColor(pct) {
+    pct = Number(pct);
+    if (pct >= 90) return '#1f9d55';
+    if (pct >= 75) return '#2f6fed';
+    if (pct >= 60) return '#d97706';
+    return '#e5484d';
+  }
+  function seenCerts() { try { return JSON.parse(localStorage.getItem('rio-math-certs-seen') || '[]'); } catch (e) { return []; } }
+
+  function go(date) {
+    if (!date) return;
+    var base = String(baseUrl || '').split('?')[0];
+    if (!base) {
+      try { base = location.origin + location.pathname; } catch (e) { base = ''; }
+    }
+    window.top.location.href = base + '?date=' + encodeURIComponent(date);
+  }
+
+  function skillsOfTest(test) {
+    var ids = [];
+    function add(list) {
+      (Array.isArray(list) ? list : (list ? [list] : [])).forEach(function (s) {
+        var id = slug(s);
+        if (id && ids.indexOf(id) === -1) ids.push(id);
+      });
+    }
+    if (test) {
+      add(test.skills);
+      (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) { add(p.skills); }); });
+      if (!ids.length && test.title) ids.push(slug(test.title));
+    }
+    return ids.slice(0, 24);
+  }
+
+  function streakOf(dates, day) {
+    var set = {};
+    dates.forEach(function (d) { set[d] = true; });
+    var cursor = set[day] ? day : addDays(day, -1), n = 0;
+    while (set[cursor]) { n++; cursor = addDays(cursor, -1); }
+    return n;
+  }
+
+  function fromHome(data) {
+    var h = data.home;
+    return {
+      full: true,
+      name: data.name || 'Rio',
+      today: data.today || today,
+      todayTest: h.todayTest || null,
+      streak: h.streak || 0,
+      average: h.average == null ? null : h.average,
+      completed: h.completed || 0,
+      assigned: h.assigned || 0,
+      latest: h.latest || null,
+      days: h.days || [],
+      skills: h.skills || [],
+      certificates: data.certificates || [],
+    };
+  }
+
+  /** Older backend: scores + the current test only. No missed/awaiting split and no per-question skills. */
+  function fromFallback(data) {
+    data = data || {};
+    var scores = (data.scores || []).filter(function (s) { return s && s.status !== 'not_submitted'; });
+    var byDate = {};
+    scores.forEach(function (s) {
+      byDate[s.date] = {
+        date: s.date, title: s.topic || '', skills: [slug(s.topic || 'General')], status: 'graded', hasTest: true,
+        percent: s.percent, score: s.score, total: s.total,
+      };
+    });
+    recent.forEach(function (d) {
+      if (byDate[d]) return;
+      byDate[d] = { date: d, title: '', skills: [], status: d === (data.today || today) ? 'assigned' : 'assigned', hasTest: true };
+    });
+    if (currentTest && currentTest.date && !byDate[currentTest.date]) {
+      byDate[currentTest.date] = { date: currentTest.date, title: currentTest.title || '', skills: currentTest.skills || [], status: 'assigned', hasTest: true };
+    }
+    if (currentTest && byDate[currentTest.date]) {
+      if (!byDate[currentTest.date].title) byDate[currentTest.date].title = currentTest.title || '';
+      if (currentTest.skills && currentTest.skills.length) byDate[currentTest.date].skills = currentTest.skills;
+    }
+    var buckets = {};
+    scores.forEach(function (s) {
+      var id = slug(s.topic || 'General');
+      if (!buckets[id]) buckets[id] = { id: id, label: s.topic || 'General', points: 0, max: 0 };
+      buckets[id].points += Number(s.score) || 0;
+      buckets[id].max += Number(s.total) || 0;
+    });
+    var skills = Object.keys(buckets).map(function (id) {
+      var b = buckets[id];
+      return { id: id, label: b.label, points: b.points, max: b.max, percent: b.max ? Math.round(100 * b.points / b.max) : null };
+    });
+    var latest = scores.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; })[0] || null;
+    var day = data.today || today;
+    return {
+      full: false,
+      name: data.name || 'Rio',
+      today: day,
+      todayTest: currentTest,
+      streak: streakOf(scores.map(function (s) { return s.date; }), day),
+      average: scores.length ? Math.round(scores.reduce(function (n, s) { return n + (Number(s.percent) || 0); }, 0) / scores.length) : null,
+      completed: scores.length,
+      assigned: null,
+      latest: latest,
+      days: Object.keys(byDate).sort().map(function (d) { return byDate[d]; }),
+      skills: skills,
+      certificates: data.certificates || [],
+    };
+  }
+
+  function labelMap(m) {
+    var map = {};
+    (m.skills || []).forEach(function (s) { map[s.id] = s.label || skillLabel(s.id); });
+    return map;
+  }
+
+  function draw() {
+    if (!root) return;
+    var m = (rio && rio.home) ? fromHome(rio) : fromFallback(rio);
+    if (!viewY) {
+      var t = parseIso(m.today) || { y: 2026, m: 8 };
+      viewY = t.y; viewM = t.m;
+    }
+    root.innerHTML = '';
+    root.appendChild(hero(m));
+    root.appendChild(tiles(m));
+    root.appendChild(calendar(m));
+    root.appendChild(stats(m));
+    root.appendChild(strengths(m));
+    root.appendChild(certs(m));
+    root.appendChild(tests(m));
+    if (!m.full) {
+      root.appendChild(el('p', { class: 'home-note', text: 'The color calendar and skill scores fill in after the math server is updated. Today\'s test still works.' }));
+    }
+  }
+
+  function hero(m) {
+    var t = m.todayTest;
+    var sub = t ? ((t.title || 'Math practice') + ' · ' + prettyDate(t.date)) : 'No test posted yet.';
+    var btn = el('button', {
+      type: 'button', class: 'home-today', id: 'homeToday',
+      'aria-label': t ? ('Today\'s test, ' + (t.title || '') + ', ' + (t.date || '')) : 'Today\'s test is not posted yet',
+      onclick: function () { if (t && t.date) go(t.date); },
+    }, [
+      el('div', { class: 'k', text: '📝  TODAY\'S TEST' }),
+      el('div', { class: 't', text: t ? 'Let\'s go!' : 'Check back soon' }),
+      el('div', { class: 's', text: sub }),
+    ]);
+    if (!t) btn.disabled = true;
+    return el('section', { class: 'home-hero', id: 'homeHero' }, [
+      el('h1', { text: 'Hi, ' + (m.name || 'Rio') + '!' }),
+      el('p', { class: 'home-date', text: prettyDate(m.today) || 'Ready to practice?' }),
+      btn,
+    ]);
+  }
+
+  function tile(k, v, s, extra) {
+    return el('div', { class: 'home-tile' + (extra || '') }, [
+      el('div', { class: 'k', text: k }),
+      el('div', { class: 'v', text: v }),
+      s ? el('div', { class: 's', text: s }) : null,
+    ]);
+  }
+  function tiles(m) {
+    var latest = m.latest;
+    var latestV = latest ? (num(latest.percent) + '%') : '—';
+    var latestS = latest ? (num(latest.score) + '/' + num(latest.total) + ' · ' + shortDay(latest.date)) : 'After your first grade';
+    var turned = m.assigned == null ? String(m.completed) : (m.completed + ' / ' + m.assigned);
+    var turnedS = m.assigned == null ? 'graded so far' : 'tests turned in';
+    return el('section', { class: 'home-tiles', id: 'homeTiles', 'aria-label': 'Your numbers' }, [
+      tile('🔥 Streak', m.streak ? (m.streak + (m.streak === 1 ? ' day' : ' days')) : '0', m.streak ? 'in a row' : 'Start one today!'),
+      tile('Average', m.average == null ? '—' : (m.average + '%'), m.average == null ? 'No grades yet' : 'of graded tests'),
+      tile('Turned in', turned, turnedS),
+      tile('Latest', latestV, latestS, latest && Number(latest.percent) >= 90 ? ' good' : ''),
+    ]);
+  }
+
+  function bounds(m) {
+    var dates = (m.days || []).map(function (d) { return d.date; }).concat(m.today ? [m.today] : []);
+    var min = null, max = null;
+    dates.forEach(function (d) {
+      var p = parseIso(d); if (!p) return;
+      var key = p.y * 12 + p.m;
+      if (min == null || key < min) min = key;
+      if (max == null || key > max) max = key;
+    });
+    if (min == null) { var t = parseIso(m.today) || { y: viewY, m: viewM }; min = max = t.y * 12 + t.m; }
+    return { min: min - 1, max: max };
+  }
+
+  function calendar(m) {
+    var b = bounds(m);
+    var key = viewY * 12 + viewM;
+    var days = {};
+    (m.days || []).forEach(function (d) { days[d.date] = d; });
+    var firstDow = new Date(Date.UTC(viewY, viewM, 1, 12)).getUTCDay();
+    var dim = new Date(Date.UTC(viewY, viewM + 1, 0, 12)).getUTCDate();
+    var names = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    var grid = el('div', { class: 'home-cal-grid', id: 'calGrid' });
+    names.forEach(function (n) { grid.appendChild(el('div', { class: 'home-dow', text: n })); });
+    var i;
+    for (i = 0; i < firstDow; i++) grid.appendChild(el('div', { class: 'home-day empty' }));
+    for (var d = 1; d <= dim; d++) {
+      var date = isoOf(viewY, viewM, d);
+      var info = days[date];
+      var status = info ? info.status : 'none';
+      var isToday = date === m.today;
+      var cls = 'home-day st-' + status + (isToday ? ' is-today' : '');
+      var label = dayLabel(date, info, isToday);
+      var canOpen = info && info.hasTest !== false && status !== 'none';
+      if (canOpen) {
+        var btn = el('button', { type: 'button', class: cls, 'aria-label': label, onclick: (function (dt) { return function () { go(dt); }; })(date) });
+        fillDay(btn, d, info);
+        grid.appendChild(btn);
+      } else {
+        var cell = el('div', { class: cls, 'aria-hidden': status === 'none' ? 'true' : 'false' });
+        fillDay(cell, d, info);
+        grid.appendChild(cell);
+      }
+    }
+    var prev = el('button', { type: 'button', class: 'home-nav', id: 'calPrev', 'aria-label': 'Previous month', text: '‹', onclick: function () {
+      if (key <= b.min) return;
+      viewM--; if (viewM < 0) { viewM = 11; viewY--; }
+      draw();
+    } });
+    var next = el('button', { type: 'button', class: 'home-nav', id: 'calNext', 'aria-label': 'Next month', text: '›', onclick: function () {
+      if (key >= b.max) return;
+      viewM++; if (viewM > 11) { viewM = 0; viewY++; }
+      draw();
+    } });
+    if (key <= b.min) prev.disabled = true;
+    if (key >= b.max) next.disabled = true;
+    return el('section', { class: 'home-card', id: 'homeCal' }, [
+      el('div', { class: 'home-cal-head' }, [
+        prev,
+        el('h2', { id: 'calLabel', text: monthName(viewY, viewM) }),
+        next,
+      ]),
+      grid,
+      legend(),
+    ]);
+  }
+  function fillDay(node, d, info) {
+    node.appendChild(el('span', { class: 'dn', text: String(d) }));
+    if (!info || info.status === 'none') return;
+    var cap = { graded: info.percent == null ? '✓' : (num(info.percent)), awaiting: 'sent', missed: 'miss', assigned: 'go', upcoming: 'soon' }[info.status] || '';
+    if (info.status === 'graded') node.style.background = scoreColor(info.percent);
+    node.appendChild(el('span', { class: 'ds', text: cap }));
+  }
+  function dayLabel(date, info, isToday) {
+    var nice = prettyDate(date);
+    if (!info || info.status === 'none') return nice + ', no test';
+    var bit = { graded: (info.percent == null ? 'graded' : info.percent + ' percent'), awaiting: 'turned in, waiting for a grade', missed: 'missed', assigned: 'assigned', upcoming: 'coming up' }[info.status] || info.status;
+    return nice + (isToday ? ', today' : '') + ', ' + bit + (info.title ? ', ' + info.title : '') + ', open this test';
+  }
+  function legend() {
+    return el('div', { class: 'home-legend' }, [
+      el('span', null, [el('i', { class: 'sw graded' }), ' score']),
+      el('span', null, [el('i', { class: 'sw sent' }), ' sent']),
+      el('span', null, [el('i', { class: 'sw miss' }), ' missed']),
+      el('span', null, [el('i', { class: 'sw go' }), ' to do']),
+      el('span', null, [el('i', { class: 'sw soon' }), ' soon']),
+    ]);
+  }
+
+  function stats(m) {
+    return el('section', { class: 'home-card', id: 'homeStats' }, [
+      el('h2', { text: '📈 Scores' }),
+      chart(m),
+    ]);
+  }
+  function chart(m) {
+    var rows = (m.days || []).filter(function (d) { return d.status === 'graded' && d.percent != null; })
+      .slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    if (rows.length > 14) rows = rows.slice(rows.length - 14);
+    if (!rows.length) return el('p', { class: 'muted', text: 'Your chart starts after the first test is graded.' });
+    var W = 360, H = 168, padL = 32, padR = 8, padT = 14, padB = 32;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var gap = rows.length > 10 ? 3 : 6;
+    var bw = Math.min(36, (innerW - gap * (rows.length - 1)) / rows.length);
+    var used = rows.length * bw + (rows.length - 1) * gap;
+    var x0 = padL + Math.max(0, (innerW - used) / 2);
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', role: 'img', 'aria-label': 'Bar chart of your score percent on each graded test' });
+    [0, 50, 100].forEach(function (p) {
+      var y = padT + innerH - (p / 100) * innerH;
+      svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: '#e3e8f5', 'stroke-width': '1' }));
+      var t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#5b6475', 'font-size': '11', 'font-family': 'system-ui, sans-serif' });
+      t.textContent = String(p);
+      svg.appendChild(t);
+    });
+    var pts = [];
+    rows.forEach(function (d, i) {
+      var pct = Math.max(0, Math.min(100, Number(d.percent) || 0));
+      var h = Math.max(3, (pct / 100) * innerH);
+      var x = x0 + i * (bw + gap);
+      var y = padT + innerH - h;
+      svg.appendChild(svgEl('rect', { x: x, y: y, width: bw, height: h, rx: '5', fill: scoreColor(pct) }));
+      pts.push((x + bw / 2) + ',' + y);
+      var lab = svgEl('text', { x: x + bw / 2, y: H - 10, 'text-anchor': 'middle', fill: '#5b6475', 'font-size': '10', 'font-family': 'system-ui, sans-serif' });
+      lab.textContent = shortDay(d.date);
+      svg.appendChild(lab);
+    });
+    if (pts.length > 1) svg.appendChild(svgEl('polyline', { points: pts.join(' '), fill: 'none', stroke: '#1d2433', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    return svg;
+  }
+
+  function strengths(m) {
+    var ranked = (m.skills || []).filter(function (s) { return s && s.max > 0 && s.percent != null; });
+    var strong = ranked.filter(function (s) { return s.percent >= 80; }).sort(function (a, b) { return b.percent - a.percent; }).slice(0, 4);
+    var weak = ranked.filter(function (s) { return s.percent < 70; }).sort(function (a, b) { return a.percent - b.percent; }).slice(0, 4);
+    var mid = ranked.filter(function (s) { return s.percent >= 70 && s.percent < 80; }).sort(function (a, b) { return a.percent - b.percent; }).slice(0, 4);
+    var box = el('section', { class: 'home-card', id: 'homeSkills' }, [
+      el('h2', { text: '💪 Skills' }),
+    ]);
+    if (!m.full) box.appendChild(el('p', { class: 'muted home-skill-note', text: 'Grouped by the test name until each question has a skill.' }));
+    if (!ranked.length) {
+      box.appendChild(el('p', { class: 'muted', text: 'Skill scores show up after a test is graded.' }));
+      return box;
+    }
+    box.appendChild(skillGroup('🌟 Strong areas', strong, 'Nothing here yet — keep practicing and they will show up.', 'strong'));
+    box.appendChild(skillGroup('🎯 Practice these', weak, 'No problem areas right now. Nice!', 'weak'));
+    if (mid.length) box.appendChild(skillGroup('👍 Getting there', mid, '', 'mid'));
+    return box;
+  }
+  function skillGroup(title, list, empty, kind) {
+    var body = list.length ? el('ul', { class: 'home-skill-list' }, list.map(function (s) { return skillRow(s, kind); }))
+      : el('p', { class: 'muted', text: empty });
+    return el('div', { class: 'home-skill-group ' + kind }, [el('h3', { text: title }), body]);
+  }
+  function skillRow(s, kind) {
+    var pct = Math.max(0, Math.min(100, Number(s.percent) || 0));
+    return el('li', null, [
+      el('div', { class: 'home-skill-top' }, [
+        el('b', { text: s.label || skillLabel(s.id) }),
+        el('span', { text: pct + '%' }),
+      ]),
+      el('div', { class: 'home-track' }, [el('div', { class: 'home-fill ' + kind, style: 'width:' + pct + '%;background:' + scoreColor(pct) })]),
+      el('small', { text: num(s.points) + ' of ' + num(s.max) + ' points' }),
+    ]);
+  }
+
+  function certs(m) {
+    var list = m.certificates || [];
+    var seen = seenCerts();
+    var shelf = el('div', { class: 'rio-shelf', id: 'homeCertShelf' });
+    list.forEach(function (c) {
+      var isNew = seen.indexOf(c.id) === -1;
+      var fig = el('button', {
+        type: 'button', class: 'rio-cert-thumb', 'aria-label': 'Open certificate ' + (c.title || ''),
+        onclick: function () { if (window.RioInbox && RioInbox.openCert) RioInbox.openCert(c); },
+      });
+      if (window.RioCert && RioCert.svg) fig.appendChild(RioCert.svg(c));
+      fig.appendChild(el('span', { class: 'cap', text: c.title || 'Certificate' }));
+      if (isNew) fig.appendChild(el('b', { class: 'rio-badge new', text: 'NEW' }));
+      shelf.appendChild(fig);
+    });
+    var all = el('button', { type: 'button', class: 'btn secondary home-cert-all', id: 'homeCertAll', text: 'Open my certificates', onclick: function () {
+      if (window.RioInbox && RioInbox.open) RioInbox.open('certs');
+    } });
+    return el('section', { class: 'home-card', id: 'homeCerts' }, [
+      el('h2', { text: '🏅 Certificates' }),
+      list.length ? shelf : el('p', { class: 'muted', text: 'When Dad gives you a certificate, it shows up here. You can print it or save the picture.' }),
+      list.length ? all : null,
+    ]);
+  }
+
+  function tests(m) {
+    var labels = labelMap(m);
+    var allSkills = [];
+    (m.days || []).forEach(function (d) {
+      (d.skills || []).forEach(function (id) { if (allSkills.indexOf(id) === -1) allSkills.push(id); });
+    });
+    allSkills.sort(function (a, b) { return (labels[a] || skillLabel(a)) < (labels[b] || skillLabel(b)) ? -1 : 1; });
+    picked = picked.filter(function (id) { return allSkills.indexOf(id) !== -1; });
+    var chips = el('div', { class: 'home-chips', id: 'homeSkillFilters' });
+    var allBtn = el('button', { type: 'button', class: 'home-chip', 'aria-pressed': picked.length ? 'false' : 'true', text: 'All', onclick: function () { picked = []; draw(); } });
+    chips.appendChild(allBtn);
+    allSkills.forEach(function (id) {
+      var on = picked.indexOf(id) !== -1;
+      chips.appendChild(el('button', {
+        type: 'button', class: 'home-chip', 'aria-pressed': on ? 'true' : 'false', 'data-skill': id,
+        text: labels[id] || skillLabel(id),
+        onclick: function () {
+          var i = picked.indexOf(id);
+          if (i === -1) picked.push(id); else picked.splice(i, 1);
+          draw();
+        },
+      }));
+    });
+    var rows = (m.days || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).filter(function (d) {
+      if (!picked.length) return true;
+      return picked.some(function (id) { return (d.skills || []).indexOf(id) !== -1; });
+    });
+    var list = el('div', { class: 'home-tests', id: 'homeTestList' });
+    if (!rows.length) list.appendChild(el('p', { class: 'muted', text: 'No tests for those skills. Try another one!' }));
+    rows.forEach(function (d) {
+      var can = d.hasTest !== false && d.status !== 'none';
+      var pill = statusPill(d);
+      var skillBits = (d.skills || []).slice(0, 3).map(function (id) { return labels[id] || skillLabel(id); }).join(' · ');
+      var row = el(can ? 'button' : 'div', {
+        type: can ? 'button' : null,
+        class: 'home-test',
+        onclick: can ? function () { go(d.date); } : null,
+      }, [
+        el('div', { class: 'home-test-top' }, [
+          el('b', { text: prettyDate(d.date) }),
+          pill,
+        ]),
+        el('div', { class: 'home-test-title', text: d.title || 'Math practice' }),
+        skillBits ? el('div', { class: 'home-test-skills', text: skillBits }) : null,
+      ]);
+      list.appendChild(row);
+    });
+    var hint = picked.length
+      ? ('Showing tests that practice ' + (picked.length === 1 ? 'this skill' : 'any of these skills') + '.')
+      : (allSkills.length ? 'Tap a skill to filter the list.' : '');
+    return el('section', { class: 'home-card', id: 'homeTests' }, [
+      el('h2', { text: '📚 Tests' }),
+      allSkills.length ? chips : null,
+      hint ? el('p', { class: 'home-filter-hint', id: 'homeFilterHint', text: hint }) : null,
+      list,
+    ]);
+  }
+  function statusPill(d) {
+    var text = { graded: d.percent == null ? 'Graded' : (num(d.percent) + '%'), awaiting: 'Sent', missed: 'Missed', assigned: 'To do', upcoming: 'Soon', none: '' }[d.status] || '';
+    if (!text) return null;
+    var node = el('span', { class: 'home-pill st-' + d.status, text: text });
+    if (d.status === 'graded' && d.percent != null) node.style.background = scoreColor(d.percent);
+    return node;
+  }
+
+  function mount(container, opts) {
+    opts = opts || {};
+    rio = opts.rio || null;
+    today = opts.today || (rio && rio.today) || '';
+    baseUrl = opts.baseUrl || '';
+    recent = Array.isArray(opts.recent) ? opts.recent : [];
+    root = el('div', { class: 'home', id: 'home' });
+    container.appendChild(root);
+    draw();
+    if (!(rio && rio.home) && typeof rioFetchJSON === 'function' && typeof RIO_API_URL === 'string') {
+      rioFetchJSON(RIO_API_URL + '?format=json', { method: 'GET' }, 30000).then(function (res) {
+        if (res && res.test) currentTest = { date: res.test.date, title: res.test.title || '', skills: skillsOfTest(res.test) };
+        if (res && Array.isArray(res.recent)) recent = res.recent;
+        if (res && res.today && !today) today = res.today;
+        draw();
+      }, function () {});
+    }
+  }
+  return { mount: mount };
+})();
+/* ==== RIO-HOME END ==== */
 </script>
 <script>
 window.__rioStart = function () {
@@ -1448,6 +2052,12 @@ window.__rioStart = function () {
 
   function render() {
     RioInbox.mount(app);   // header strip: messages from Dad, tokens, certificates (stays hidden if the backend doesn't have it)
+    if (DATA && DATA.mode === 'home') {
+      document.body.classList.add('is-home');
+      document.getElementById('bar').hidden = true;
+      RioHome.mount(app, { today: DATA.today, baseUrl: DATA.baseUrl || '', rio: DATA.rio || null, recent: DATA.recent || [] });
+      return;
+    }
     if (!test) {
       app.appendChild(el('header', { class: 'top' }, [el('h1', { text: 'Math practice' })]));
       app.appendChild(el('div', { class: 'card error' }, [
@@ -1470,7 +2080,9 @@ window.__rioStart = function () {
     }); });
     Object.keys(graphs).forEach(function (pid) { if (!partById[pid] || !graphs[pid] || !graphs[pid].axes) delete graphs[pid]; });
 
+    var homeUrl = DATA.baseUrl ? String(DATA.baseUrl).split('?')[0] : '';
     app.appendChild(el('header', { class: 'top' }, [
+      homeUrl ? el('a', { class: 'back-home', href: homeUrl, text: '🏠 Home' }) : null,
       el('h1', { text: test.title || 'Math practice' }),
       el('div', { class: 'date', text: '📅 ' + prettyDate(test.date) }),
       test.instructions ? el('div', { class: 'instructions', text: test.instructions }) : null
@@ -2259,8 +2871,8 @@ window.__rioStart = function () {
 };
 </script>
 <script>
-/* Loader: reads ?date=YYYY-MM-DD (no date = today in Tokyo, or the newest test before it), fetches the
-   questions-only test from Apps Script without cookies, then starts the page. */
+/* Loader. No ?date= opens Rio's home screen (calendar, scores, skills). ?date=YYYY-MM-DD fetches that
+   day's questions-only test. Every call omits cookies. */
 (function () {
   'use strict';
   var app = document.getElementById('app');
@@ -2290,10 +2902,11 @@ window.__rioStart = function () {
   }
   function load() {
     showLoading();
-    var url = RIO_API_URL + '?format=json' + (requested ? '&date=' + encodeURIComponent(requested) : '');
+    var url = RIO_API_URL + '?format=json&date=' + encodeURIComponent(requested);
     rioFetchJSON(url, { method: 'GET' }, 45000).then(function (res) {
       if (!res || (!res.test && !res.error)) throw new Error('The math server sent something unexpected.');
       DATA = {
+        mode: 'test',
         test: res.test || null,
         error: res.error || null,
         requested: requested,
@@ -2306,7 +2919,29 @@ window.__rioStart = function () {
       window.__rioStart();
     }).catch(function (e) { showError(String(e && e.message || e)); });
   }
-  load();
+  function startHome(rio, day) {
+    DATA = {
+      mode: 'home',
+      test: null,
+      error: null,
+      requested: '',
+      today: day || tokyoToday(),
+      recent: [],
+      rio: rio,
+      baseUrl: baseUrl
+    };
+    document.title = "Rio's math";
+    app.innerHTML = '';
+    window.__rioStart();
+  }
+  function loadHome() {
+    showLoading();
+    rioFetchJSON(RIO_API_URL + '?format=json&api=rio', { method: 'GET' }, 45000).then(function (res) {
+      var inbox = (res && res.ok === true && res.api === 'rio') ? res : null;
+      startHome(inbox, (inbox && inbox.today) || tokyoToday());
+    }, function () { startHome(null, tokyoToday()); });
+  }
+  if (requested) load(); else loadHome();
 })();
 </script>
 </body>
