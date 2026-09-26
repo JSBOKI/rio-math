@@ -477,12 +477,22 @@
           })
           .catch(function (e) { fail(e); });
       },
-      /* The only other public write: set read flags on existing message ids (text/plain POST, no cookies). */
+      /* Public writes besides Submit: mark messages read, and save a finished mini quiz.
+         A mini quiz is practice. It must not be sent as a daily-test submission. */
       rioMarkRead: function (ids) {
         rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'markRead', ids: ids }) }, 30000)
           .then(function (res) {
             if (!res || res.ok !== true) throw new Error((res && res.error) || 'Could not mark as read.');
+            ok(res);
+          })
+          .catch(function (e) { fail(e); });
+      },
+      submitMiniQuiz: function (payload) {
+        rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(Object.assign({ action: 'miniquiz' }, payload || {})) }, 30000)
+          .then(function (res) {
+            if (!res || res.ok !== true) throw new Error((res && res.error) || 'Could not save the mini quiz.');
             ok(res);
           })
           .catch(function (e) { fail(e); });
@@ -1421,6 +1431,14 @@ var RioHome = (function () {
     }
     window.top.location.href = base + '?date=' + encodeURIComponent(date);
   }
+  function goQuiz(id) {
+    if (!id) return;
+    var base = String(baseUrl || '').split('?')[0];
+    if (!base) {
+      try { base = location.origin + location.pathname; } catch (e) { base = ''; }
+    }
+    window.top.location.href = base + '?quiz=' + encodeURIComponent(id);
+  }
 
   function skillsOfTest(test) {
     var ids = [];
@@ -1531,8 +1549,13 @@ var RioHome = (function () {
     root.innerHTML = '';
     root.appendChild(hero(m));
     root.appendChild(tiles(m));
+    if (window.RioQuiz && RioQuiz.practiceCard) root.appendChild(RioQuiz.practiceCard(m, goQuiz));
     root.appendChild(calendar(m));
     root.appendChild(stats(m));
+    if (window.RioQuiz && RioQuiz.historyCard) {
+      var quizHist = RioQuiz.historyCard();
+      if (quizHist) root.appendChild(quizHist);
+    }
     root.appendChild(strengths(m));
     root.appendChild(certs(m));
     root.appendChild(tests(m));
@@ -2118,6 +2141,7 @@ var RioScratch = (function () {
       }
       strokes.length = 0; disarmClear(); syncAttach(); persist(); redraw(); paintTools(); setMsg('Cleared.');
     });
+    var allowAttach = opts.attach !== false;
     var attachBtn = document.createElement('button');
     attachBtn.type = 'button'; attachBtn.id = 'scratchAttach';
     attachBtn.addEventListener('click', function () {
@@ -2144,7 +2168,7 @@ var RioScratch = (function () {
       eraserBtn.classList.toggle('is-on', eraser);
       undoBtn.disabled = !strokes.length;
       clearBtn.disabled = !strokes.length && !clearArmed;
-      attachBtn.disabled = !strokes.length && !attached;
+      if (allowAttach) attachBtn.disabled = !strokes.length && !attached;
       attachBtn.textContent = attached ? 'Take out of my answer' : 'Attach to my answer';
       attachBtn.setAttribute('aria-pressed', attached ? 'true' : 'false');
       attachBtn.classList.toggle('is-on', attached);
@@ -2154,7 +2178,7 @@ var RioScratch = (function () {
     tools.appendChild(eraserBtn);
     tools.appendChild(undoBtn);
     tools.appendChild(clearBtn);
-    tools.appendChild(attachBtn);
+    if (allowAttach) tools.appendChild(attachBtn);
     tools.appendChild(msg);
     pad.appendChild(bar); pad.appendChild(prob); pad.appendChild(stage); pad.appendChild(tools);
 
@@ -2240,6 +2264,1143 @@ var RioScratch = (function () {
   return { has: has, load: load, exportJpeg: exportJpeg, open: open, storageKey: storageKey };
 })();
 /* ==== RIO-SCRATCH END ==== */
+</script>
+<script>
+/* ==== RIO-QUIZ-GEN START (mini-quiz generators — edit src/quiz-gen.js, then node dev/sync-blocks.js) ==== */
+var RioQuizGen = (function () {
+  'use strict';
+
+  var SKILLS = [
+    { id: 'slope', label: 'Slope' },
+    { id: 'tables', label: 'Tables' },
+    { id: 'intercepts', label: 'Y-intercept' },
+    { id: 'slope-intercept', label: 'Slope-intercept form' },
+    { id: 'solving-equations', label: 'Solving equations' },
+    { id: 'writing-equations', label: 'Writing equations' },
+    { id: 'comparing-linear-costs', label: 'Comparing two plans' },
+    { id: 'constant-rate', label: 'Rate of change' },
+    { id: 'graphing-lines', label: 'Reading a graph' },
+    { id: 'points-on-a-line', label: 'Points on a line' },
+    { id: 'linear-equations', label: 'Horizontal and vertical lines' },
+    { id: 'order-of-operations', label: 'Order of operations' },
+    { id: 'inequalities', label: 'Inequalities' }
+  ];
+  var BY_ID = {};
+  SKILLS.forEach(function (s) { BY_ID[s.id] = s; });
+
+  function label(id) { return (BY_ID[id] && BY_ID[id].label) || String(id || ''); }
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s = (Math.imul(1664525, s) + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+  function irand(r, a, b) { return a + Math.floor(r() * (b - a + 1)); }
+  function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
+  function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { var t = a % b; a = b; b = t; }
+    return a || 1;
+  }
+  function fracText(n, d) {
+    if (d < 0) { n = -n; d = -d; }
+    var g = gcd(n, d);
+    n = n / g; d = d / g;
+    if (d === 1) return String(n);
+    return n + '/' + d;
+  }
+  function numText(n) {
+    if (typeof n === 'string') return n;
+    if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+    return String(Math.round(n * 1000) / 1000);
+  }
+  function fmtSlope(m) {
+    if (m === 0) return '0';
+    if (m === 1) return 'x';
+    if (m === -1) return '-x';
+    return numText(m) + 'x';
+  }
+  function fmtLine(m, b) {
+    if (m === 0) return 'y = ' + numText(b);
+    var ms = fmtSlope(m);
+    if (b === 0) return 'y = ' + ms;
+    if (b > 0) return 'y = ' + ms + ' + ' + numText(b);
+    return 'y = ' + ms + ' - ' + numText(Math.abs(b));
+  }
+  function signed(n) { return n < 0 ? '− ' + Math.abs(n) : '+ ' + n; }
+  function linLeft(a, b) {
+    var s = '';
+    if (a === 1) s = 'x';
+    else if (a === -1) s = '-x';
+    else s = a + 'x';
+    if (b === 0) return s;
+    if (b > 0) return s + ' + ' + b;
+    return s + ' - ' + Math.abs(b);
+  }
+
+  function norm(s) {
+    return String(s == null ? '' : s).trim().toLowerCase()
+      .replace(/[\u2212\u2013\u2014]/g, '-')
+      .replace(/[\u00d7\u22c5\u00b7]/g, '*')
+      .replace(/[\u2264]/g, '<=')
+      .replace(/[\u2265]/g, '>=')
+      .replace(/\s+/g, '');
+  }
+  function parseNumber(s) {
+    s = norm(s).replace(/\*/g, '');
+    if (!s) return null;
+    var f = /^(-?\d+)\/(-?\d+)$/.exec(s);
+    if (f) {
+      if (+f[2] === 0) return null;
+      return +f[1] / +f[2];
+    }
+    if (/^[+-]?\d+(\.\d+)?$/.test(s)) return parseFloat(s);
+    return null;
+  }
+  function near(a, b) {
+    if (a == null || b == null || !isFinite(a) || !isFinite(b)) return false;
+    return Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(a), Math.abs(b));
+  }
+  function isUndefinedSlope(s) {
+    var n = norm(s).replace(/[^a-z]/g, '');
+    return n === 'undefined' || n === 'noslope' || n === 'none' || n === 'dne' || n === 'doesnotexist';
+  }
+  function collect(expr) {
+    expr = norm(expr).replace(/\*/g, '');
+    if (!expr) return null;
+    expr = expr.replace(/\((-?\d+)\/(\d+)\)/g, function (_, a, b) { return fracText(+a, +b); });
+    if (expr.charAt(0) !== '+' && expr.charAt(0) !== '-') expr = '+' + expr;
+    expr = expr.replace(/\+\+/g, '+').replace(/\+-/g, '-').replace(/-\+/g, '-').replace(/--/g, '+');
+    var re = /([+-])(?:(\d+)\/(\d+)|(\d*\.?\d+))?([xy])?/g;
+    var coef = { x: 0, y: 0, c: 0 };
+    var last = 0, m;
+    while ((m = re.exec(expr))) {
+      if (m.index !== last) return null;
+      if (m[2] == null && (m[4] == null || m[4] === '') && m[5] == null) return null;
+      var sign = m[1] === '-' ? -1 : 1;
+      var num;
+      if (m[2] != null) {
+        if (+m[3] === 0) return null;
+        num = +m[2] / +m[3];
+      } else if (m[4] != null && m[4] !== '') num = parseFloat(m[4]);
+      else num = 1;
+      if (!isFinite(num)) return null;
+      var v = sign * num;
+      if (m[5] === 'x') coef.x += v;
+      else if (m[5] === 'y') coef.y += v;
+      else coef.c += v;
+      last = re.lastIndex;
+    }
+    if (last !== expr.length) return null;
+    return coef;
+  }
+  function lineOf(s) {
+    var n = norm(s).replace(/\*/g, '');
+    if (!n || n.indexOf('=') < 0 || /[<>]/.test(n)) return null;
+    var bits = n.split('=');
+    if (bits.length !== 2 || !bits[0] || !bits[1]) return null;
+    var L = collect(bits[0]), R = collect(bits[1]);
+    if (!L || !R) return null;
+    var A = L.x - R.x, B = L.y - R.y, C = L.c - R.c;
+    if (near(A, 0) && near(B, 0)) return null;
+    if (near(B, 0)) return { vertical: true, x: -C / A };
+    return { vertical: false, m: -A / B, b: -C / B };
+  }
+  function sameLine(p, q) {
+    if (!p || !q) return false;
+    if (p.vertical || q.vertical) return !!(p.vertical && q.vertical && near(p.x, q.x));
+    return near(p.m, q.m) && near(p.b, q.b);
+  }
+  function parseIneq(s) {
+    var n = norm(s).replace(/\*/g, '');
+    var m = /^x(<=|>=|<|>)([+-]?\d+(?:\/\d+)?(?:\.\d+)?)$/.exec(n);
+    if (m) return { op: m[1], n: parseNumber(m[2]) };
+    var m2 = /^([+-]?\d+(?:\/\d+)?(?:\.\d+)?)(<=|>=|<|>)x$/.exec(n);
+    if (m2) {
+      var flip = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' };
+      return { op: flip[m2[2]], n: parseNumber(m2[1]) };
+    }
+    return null;
+  }
+  function sameIneq(a, b) { return !!(a && b && a.op === b.op && near(a.n, b.n)); }
+
+  function equivalent(given, expected) {
+    if (isUndefinedSlope(expected)) return isUndefinedSlope(given);
+    var gn = norm(given), en = norm(expected);
+    if (!gn) return false;
+    if (gn === en) return true;
+    var gi = parseIneq(given), ei = parseIneq(expected);
+    if (ei) return sameIneq(gi, ei);
+    var gl = lineOf(given), el = lineOf(expected);
+    if (el && gl) return sameLine(gl, el);
+    var gnum = parseNumber(given), enum_ = parseNumber(expected);
+    if (enum_ != null && gnum != null && !/[a-z<>=]/.test(en)) return near(gnum, enum_);
+    return false;
+  }
+
+  function q(prompt, answer, hint, steps, extra) {
+    var o = { prompt: prompt, answer: String(answer), hint: hint, steps: steps, kind: 'text' };
+    if (extra) Object.keys(extra).forEach(function (k) { o[k] = extra[k]; });
+    return o;
+  }
+
+  function slopeTwoPoints(r) {
+    var m = pick(r, [-3, -2, -1, 0, 1, 2, 3, 4]);
+    var run = irand(r, 1, 5);
+    var rise = m * run;
+    var x1 = irand(r, -3, 4), y1 = irand(r, -4, 5);
+    var x2 = x1 + run, y2 = y1 + rise;
+    return q(
+      'What is the slope of the line through (' + x1 + ', ' + y1 + ') and (' + x2 + ', ' + y2 + ')?',
+      numText(m),
+      'Slope is the change in y divided by the change in x.',
+      '(' + y2 + ' − ' + y1 + ') / (' + x2 + ' − ' + x1 + ') = ' + rise + ' / ' + run + ' = ' + numText(m) + '.',
+      { value: m }
+    );
+  }
+  function slopeTable(r) {
+    var m = pick(r, [-2, -1, 1, 2, 3]);
+    var b = irand(r, -3, 4);
+    var rows = [0, 1, 2, 3].map(function (x) { return x + ' | ' + (m * x + b); }).join('\n');
+    return q(
+      'This table is a straight line. What is the slope?\nx | y\n' + rows,
+      numText(m),
+      'Pick two rows. Slope is how much y changes when x goes up by 1.',
+      'From x = 0 to x = 1, y goes from ' + b + ' to ' + (m + b) + '. The slope is ' + numText(m) + '.',
+      { value: m }
+    );
+  }
+  function slopeFromEq(r) {
+    var m = pick(r, [-4, -2, -1, 1, 2, 3, 5]);
+    var b = irand(r, -6, 6);
+    return q(
+      'What is the slope of ' + fmtLine(m, b) + '?',
+      numText(m),
+      'In y = mx + b, m is the slope.',
+      fmtLine(m, b) + ' has slope ' + numText(m) + '.',
+      { value: m, line: { m: m, b: b } }
+    );
+  }
+  function slopeStandard(r) {
+    var m = pick(r, [-3, -2, 1, 2, 4]);
+    var b = irand(r, -5, 5);
+    var left = linLeft(m, 0) + ' − y';
+    var right = -b;
+    var shown = (m === 1 ? 'x' : m === -1 ? '-x' : m + 'x') + ' − y = ' + (-b);
+    if (b === 0) shown = (m === 1 ? 'x' : m + 'x') + ' − y = 0';
+    return q(
+      'What is the slope of ' + shown + '?',
+      numText(m),
+      'Solve for y first. The number in front of x is the slope.',
+      'Add y to both sides and move the constant: ' + fmtLine(m, b) + '. The slope is ' + numText(m) + '.',
+      { value: m, line: { m: m, b: b } }
+    );
+  }
+
+  function interceptEq(r) {
+    var m = pick(r, [-3, -1, 1, 2, 4]);
+    var b = irand(r, -6, 6);
+    if (b === 0) b = 3;
+    return q(
+      'What is the y-intercept of ' + fmtLine(m, b) + '?',
+      numText(b),
+      'The y-intercept is b in y = mx + b. It is the y value when x is 0.',
+      'When x = 0, y = ' + numText(b) + '.',
+      { value: b }
+    );
+  }
+  function interceptPoint(r) {
+    var m = pick(r, [-2, -1, 1, 2, 3]);
+    var x = irand(r, 1, 5);
+    var b = irand(r, -4, 5);
+    var y = m * x + b;
+    return q(
+      'A line has slope ' + m + ' and passes through (' + x + ', ' + y + '). What is the y-intercept?',
+      numText(b),
+      'Use y = mx + b and plug in the point.',
+      y + ' = ' + m + '(' + x + ') + b, so ' + y + ' = ' + (m * x) + ' + b. Then b = ' + numText(b) + '.',
+      { value: b }
+    );
+  }
+  function interceptTable(r) {
+    var m = pick(r, [-2, 1, 2, 3]);
+    var b = irand(r, -3, 6);
+    return q(
+      'What is the y-intercept?\nx | y\n0 | ' + b + '\n1 | ' + (m + b) + '\n2 | ' + (2 * m + b),
+      numText(b),
+      'The y-intercept is the y value in the row where x is 0.',
+      'When x = 0, y = ' + numText(b) + '.',
+      { value: b }
+    );
+  }
+
+  function writeSlopeInt(r) {
+    var m = pick(r, [-3, -2, -1, 1, 2, 3]);
+    var b = irand(r, -5, 6);
+    return q(
+      'Write the equation of the line with slope ' + m + ' and y-intercept ' + b + '. Use y and x.',
+      fmtLine(m, b),
+      'Slope-intercept form is y = mx + b.',
+      'm = ' + m + ' and b = ' + b + ', so ' + fmtLine(m, b) + '.',
+      { kind: 'equation', line: { m: m, b: b } }
+    );
+  }
+  function writeFromPoint(r) {
+    var m = pick(r, [-2, -1, 1, 2, 3]);
+    var x = irand(r, -2, 4);
+    var b = irand(r, -4, 4);
+    var y = m * x + b;
+    return q(
+      'Write y = mx + b for the line with slope ' + m + ' through (' + x + ', ' + y + ').',
+      fmtLine(m, b),
+      'Find b from the point, then write y = mx + b.',
+      y + ' = ' + m + '(' + x + ') + b gives b = ' + b + '. So ' + fmtLine(m, b) + '.',
+      { kind: 'equation', line: { m: m, b: b } }
+    );
+  }
+  function writeFromTwo(r) {
+    var m = pick(r, [-2, 1, 2, 3]);
+    var b = irand(r, -3, 4);
+    var x1 = 0, y1 = b;
+    var x2 = 2, y2 = m * 2 + b;
+    return q(
+      'Write the slope-intercept equation of the line through (' + x1 + ', ' + y1 + ') and (' + x2 + ', ' + y2 + ').',
+      fmtLine(m, b),
+      'Find the slope, then the y-intercept.',
+      'Slope = (' + y2 + ' − ' + y1 + ') / (' + x2 + ' − ' + x1 + ') = ' + m + '. The line crosses the y-axis at ' + b + '. ' + fmtLine(m, b) + '.',
+      { kind: 'equation', line: { m: m, b: b } }
+    );
+  }
+  function rewriteStandard(r) {
+    var m = pick(r, [-3, -1, 2, 4]);
+    var b = irand(r, -4, 5);
+    var shown;
+    if (m < 0) shown = ( -m) + 'x + y = ' + b;
+    else shown = yOnLeft(m, b);
+    function yOnLeft(mm, bb) {
+      if (mm > 0) return 'y − ' + mm + 'x = ' + bb;
+      return 'y + ' + (-mm) + 'x = ' + bb;
+    }
+    shown = yOnLeft(m, b);
+    return q(
+      'Write ' + shown + ' in slope-intercept form (y = mx + b).',
+      fmtLine(m, b),
+      'Get y by itself on one side.',
+      'Solving for y gives ' + fmtLine(m, b) + '.',
+      { kind: 'equation', line: { m: m, b: b } }
+    );
+  }
+
+  function solveOne(r) {
+    var kind = pick(r, ['add', 'sub', 'mul', 'div']);
+    var x = irand(r, -8, 9);
+    if (x === 0) x = 4;
+    var a, prompt, steps;
+    if (kind === 'add') {
+      a = irand(r, -9, 9); if (a === 0) a = 3;
+      var sum = x + a;
+      prompt = 'Solve: x ' + (a < 0 ? '− ' + (-a) : '+ ' + a) + ' = ' + sum;
+      steps = 'Subtract ' + a + ' from both sides. x = ' + x + '.';
+    } else if (kind === 'sub') {
+      a = irand(r, 1, 9);
+      prompt = 'Solve: x − ' + a + ' = ' + (x - a);
+      steps = 'Add ' + a + ' to both sides. x = ' + x + '.';
+    } else if (kind === 'mul') {
+      a = pick(r, [2, 3, 4, 5, -2, -3]);
+      prompt = 'Solve: ' + a + 'x = ' + (a * x);
+      steps = 'Divide both sides by ' + a + '. x = ' + x + '.';
+    } else {
+      a = pick(r, [2, 3, 4, 5]);
+      var quot = irand(r, -6, 6); if (quot === 0) quot = 2;
+      x = a * quot;
+      prompt = 'Solve: x / ' + a + ' = ' + quot;
+      steps = 'Multiply both sides by ' + a + '. x = ' + x + '.';
+    }
+    return q(prompt, numText(x), 'Do the opposite operation on both sides.', steps, { value: x, kind: 'number' });
+  }
+  function solveTwo(r) {
+    var x = irand(r, -6, 7); if (x === 0) x = 3;
+    var a = pick(r, [2, 3, 4, 5, -2, -3]);
+    var b = irand(r, -8, 8); if (b === 0) b = 2;
+    var c = a * x + b;
+    return q(
+      'Solve: ' + linLeft(a, b) + ' = ' + c,
+      numText(x),
+      'Undo the addition or subtraction first, then divide.',
+      'Subtract ' + b + ': ' + a + 'x = ' + (c - b) + '. Divide by ' + a + ': x = ' + x + '.',
+      { value: x, kind: 'number' }
+    );
+  }
+
+  function writeWord(r) {
+    var rate = pick(r, [2, 3, 4, 5, 8, 10]);
+    var fee = pick(r, [0, 5, 12, 15, 20, 25]);
+    var thing = pick(r, [
+      ['hours', 'the total cost in dollars'],
+      ['tickets', 'the total cost in dollars'],
+      ['miles', 'the total distance from home']
+    ]);
+    var story = fee
+      ? 'A plan costs $' + fee + ' plus $' + rate + ' for each of the ' + thing[0] + '.'
+      : 'Something grows by ' + rate + ' for each of the ' + thing[0] + ', starting at 0.';
+    return q(
+      story + ' Write an equation for ' + thing[1] + '. Use y for that total and x for the number of ' + thing[0] + '.',
+      fmtLine(rate, fee),
+      'The starting amount is b. The amount added each time is the slope.',
+      'Start at ' + fee + ' and add ' + rate + ' each time: ' + fmtLine(rate, fee) + '.',
+      { kind: 'equation', line: { m: rate, b: fee } }
+    );
+  }
+  function writeWordStart(r) {
+    var start = pick(r, [20, 40, 50, 80]);
+    var each = pick(r, [2, 3, 5, 6]);
+    var down = r() < 0.5;
+    var m = down ? -each : each;
+    var story = down
+      ? 'A phone starts with ' + start + ' songs and Rio deletes ' + each + ' songs every day.'
+      : 'Rio has ' + start + ' cards and gets ' + each + ' more each week.';
+    var unit = down ? 'days' : 'weeks';
+    return q(
+      story + ' Write y for how many are left, and x for the number of ' + unit + '.',
+      fmtLine(m, start),
+      down ? 'Deleting means the slope is negative.' : 'The pile starts at ' + start + ' and grows.',
+      (down ? 'Start at ' + start + ' and subtract ' + each + ' each day: ' : 'Start at ' + start + ' and add ' + each + ' each week: ') + fmtLine(m, start) + '.',
+      { kind: 'equation', line: { m: m, b: start } }
+    );
+  }
+
+  function plans(r) {
+    var rateB = pick(r, [2, 3, 4, 5]);
+    var rateA = rateB + pick(r, [2, 3, 4, 5]);
+    var gap = rateA - rateB;
+    var k = pick(r, [2, 3, 4, 5, 6]);
+    var fee = gap * k;
+    var n = pick(r, [1, 2, 3, 8, 10].filter(function (v) { return v !== k; }));
+    if (n === k) n = k + 2;
+    var costA = rateA * n;
+    var costB = rateB * n + fee;
+    var cheaper = costA < costB ? 'Plan A' : costB < costA ? 'Plan B' : 'They cost the same';
+    var which = r();
+    if (which < 0.34) {
+      return q(
+        'Plan A costs $' + rateA + ' per student. Plan B costs $' + rateB + ' per student plus a $' + fee + ' fee. How much does Plan A cost for ' + n + ' students?',
+        numText(costA),
+        'Plan A has no fee. Multiply the price by the number of students.',
+        rateA + ' × ' + n + ' = ' + costA + '.',
+        { value: costA, kind: 'number' }
+      );
+    }
+    if (which < 0.67) {
+      return q(
+        'Plan A: $' + rateA + ' per student. Plan B: $' + rateB + ' per student plus $' + fee + '. Which costs less for ' + n + ' students?',
+        cheaper,
+        'Work out both costs, then compare.',
+        'Plan A: ' + costA + '. Plan B: ' + rateB + ' × ' + n + ' + ' + fee + ' = ' + costB + '. ' + cheaper + (cheaper === 'They cost the same' ? '.' : ' costs less.'),
+        { kind: 'choice', choices: ['Plan A', 'Plan B', 'They cost the same'] }
+      );
+    }
+    return q(
+      'Plan A costs $' + rateA + ' per student. Plan B costs $' + rateB + ' per student plus $' + fee + '. For how many students do the plans cost the same?',
+      numText(k),
+      'Set the two costs equal and solve for the number of students.',
+      rateA + 'x = ' + rateB + 'x + ' + fee + '. Then ' + gap + 'x = ' + fee + ', so x = ' + k + '.',
+      { value: k, kind: 'number' }
+    );
+  }
+
+  function rateWord(r) {
+    var per = pick(r, [2, 3, 4, 5]);
+    var each = pick(r, [3, 4, 6, 8]);
+    var times = pick(r, [2, 3, 4, 5]);
+    var totalT = per * times;
+    var total = each * times;
+    var noun = pick(r, [['km', 'hours'], ['pages', 'minutes'], ['dollars', 'days']]);
+    return q(
+      'Rio covers ' + each + ' ' + noun[0] + ' every ' + per + ' ' + noun[1] + '. How many ' + noun[0] + ' in ' + totalT + ' ' + noun[1] + '?',
+      numText(total),
+      'How many groups of ' + per + ' fit into ' + totalT + '?',
+      totalT + ' / ' + per + ' = ' + times + ' groups. ' + times + ' × ' + each + ' = ' + total + '.',
+      { value: total, kind: 'number' }
+    );
+  }
+  function rateUnit(r) {
+    var run = pick(r, [2, 3, 4]);
+    var m = pick(r, [1, 2, 3, 5]);
+    var rise = m * run;
+    return q(
+      'A line rises ' + rise + ' when x increases by ' + run + '. What is the rate of change per 1 x?',
+      numText(m),
+      'Rate of change is rise divided by run.',
+      rise + ' / ' + run + ' = ' + numText(m) + '.',
+      { value: m, kind: 'number' }
+    );
+  }
+  function rateTable(r) {
+    var m = pick(r, [2, 3, 4, 5]);
+    var b = pick(r, [0, 1, 4]);
+    return q(
+      'What is the rate of change (slope) in this table?\nx | y\n1 | ' + (m + b) + '\n2 | ' + (2 * m + b) + '\n3 | ' + (3 * m + b),
+      numText(m),
+      'See how much y grows when x grows by 1.',
+      'From x = 1 to x = 2, y changes by ' + m + '. The rate is ' + m + '.',
+      { value: m, kind: 'number' }
+    );
+  }
+
+  function graphSlope(r) {
+    var m = pick(r, [-2, -1, 1, 2, 3]);
+    var b = irand(r, -2, 3);
+    var x2 = 2;
+    var y2 = m * x2 + b;
+    return q(
+      'What is the slope of the line in the graph? It goes through (0, ' + b + ') and (' + x2 + ', ' + y2 + ').',
+      numText(m),
+      'From the left point to the right point, slope is rise over run.',
+      'Rise = ' + y2 + ' − ' + b + ' = ' + (y2 - b) + '. Run = ' + x2 + '. Slope = ' + numText(m) + '.',
+      { value: m, graph: { m: m, b: b, xmin: -1, xmax: 5, ymin: Math.min(-1, b, y2) - 1, ymax: Math.max(1, b, y2) + 1 } }
+    );
+  }
+  function graphReadY(r) {
+    var m = pick(r, [-1, 1, 2]);
+    var b = pick(r, [0, 1, 2]);
+    var x = pick(r, [2, 3]);
+    var y = m * x + b;
+    return q(
+      'On the graph, the line is ' + fmtLine(m, b) + '. What is y when x is ' + x + '?',
+      numText(y),
+      'Find x on the horizontal axis, then go up or down to the line.',
+      'y = ' + m + '(' + x + ') + ' + b + ' = ' + y + '.',
+      { value: y, graph: { m: m, b: b, xmin: -1, xmax: 5, ymin: -2, ymax: Math.max(6, y + 1), markX: x } }
+    );
+  }
+  function graphHorizontal(r) {
+    var k = pick(r, [-3, -1, 2, 4]);
+    return q(
+      'The graph shows a horizontal line through (0, ' + k + '). What is its equation?',
+      'y = ' + k,
+      'A horizontal line is y = a number.',
+      'Every point has y = ' + k + ', so the equation is y = ' + k + '.',
+      { kind: 'equation', line: { m: 0, b: k }, graph: { m: 0, b: k, xmin: -3, xmax: 4, ymin: Math.min(-2, k - 1), ymax: Math.max(3, k + 1) } }
+    );
+  }
+
+  function pointOnLine(r) {
+    var m = pick(r, [-2, 1, 2, 3]);
+    var b = irand(r, -2, 4);
+    var x = irand(r, -2, 4);
+    var on = r() < 0.5;
+    var y = m * x + b + (on ? 0 : pick(r, [-2, 2, 3]));
+    if (!on && y === m * x + b) y += 2;
+    var yes = y === m * x + b;
+    return q(
+      'Is the point (' + x + ', ' + y + ') on the line ' + fmtLine(m, b) + '?',
+      yes ? 'Yes' : 'No',
+      'Plug x into the equation and see if you get that y.',
+      m + '(' + x + ') + ' + b + ' = ' + (m * x + b) + '. The point says y = ' + y + ', so the answer is ' + (yes ? 'yes' : 'no') + '.',
+      { kind: 'choice', choices: ['Yes', 'No'] }
+    );
+  }
+  function missingY(r) {
+    var m = pick(r, [-2, 1, 2, 3]);
+    var b = irand(r, -3, 4);
+    var x = irand(r, -2, 5);
+    var y = m * x + b;
+    return q(
+      'The line ' + fmtLine(m, b) + ' passes through (' + x + ', y). What is y?',
+      numText(y),
+      'Replace x in the equation.',
+      'y = ' + m + '(' + x + ') + ' + b + ' = ' + y + '.',
+      { value: y, kind: 'number' }
+    );
+  }
+  function whichPoint(r) {
+    var m = pick(r, [1, 2, -1]);
+    var b = pick(r, [0, 1, 3]);
+    var x = pick(r, [1, 2, 3]);
+    var y = m * x + b;
+    var wrong1 = '(' + x + ', ' + (y + 2) + ')';
+    var wrong2 = '(' + (x + 1) + ', ' + y + ')';
+    var right = '(' + x + ', ' + y + ')';
+    var choices = [right, wrong1, wrong2];
+    for (var i = choices.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1));
+      var t = choices[i]; choices[i] = choices[j]; choices[j] = t;
+    }
+    return q(
+      'Which point is on ' + fmtLine(m, b) + '?',
+      right,
+      'Try each point in the equation.',
+      'For x = ' + x + ', y should be ' + y + '. The point is ' + right + '.',
+      { kind: 'choice', choices: choices }
+    );
+  }
+
+  function missingTable(r) {
+    var m = pick(r, [-2, 1, 2, 3, 4]);
+    var b = irand(r, -2, 5);
+    var xs = [0, 1, 2, 3];
+    var hide = pick(r, [1, 2, 3]);
+    var lines = xs.map(function (x) {
+      return x + ' | ' + (x === hide ? '?' : (m * x + b));
+    }).join('\n');
+    var y = m * hide + b;
+    return q(
+      'The table is a straight line. What number replaces the question mark?\nx | y\n' + lines,
+      numText(y),
+      'Find the pattern: how much y changes when x goes up by 1.',
+      'The slope is ' + m + ' and the start (x = 0) is ' + b + '. When x = ' + hide + ', y = ' + y + '.',
+      { value: y, kind: 'number' }
+    );
+  }
+  function tableMatch(r) {
+    var m = pick(r, [-2, 1, 2, 3]);
+    var b = pick(r, [0, 1, -1, 4]);
+    var right = fmtLine(m, b);
+    var wrongA = fmtLine(m, b + 2);
+    var wrongB = fmtLine(m === 1 ? 2 : m + 1, b);
+    var choices = [right, wrongA, wrongB];
+    for (var i = choices.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1));
+      var t = choices[i]; choices[i] = choices[j]; choices[j] = t;
+    }
+    return q(
+      'Which equation matches the table?\nx | y\n0 | ' + b + '\n1 | ' + (m + b) + '\n2 | ' + (2 * m + b),
+      right,
+      'Look at y when x is 0, then see how y changes.',
+      'y-intercept ' + b + ' and slope ' + m + ' give ' + right + '.',
+      { kind: 'choice', choices: choices, line: { m: m, b: b } }
+    );
+  }
+
+  function horizEq(r) {
+    var k = pick(r, [-4, -3, -1, 2, 5]);
+    var x = irand(r, -2, 4);
+    return q(
+      'What is the equation of the horizontal line through (' + x + ', ' + k + ')?',
+      'y = ' + k,
+      'Horizontal lines are y = a number. The number is the y of any point on it.',
+      'The y value stays ' + k + ', so the equation is y = ' + k + '.',
+      { kind: 'equation', line: { m: 0, b: k } }
+    );
+  }
+  function vertEq(r) {
+    var k = pick(r, [-3, -1, 2, 4, 6]);
+    var y = irand(r, -2, 3);
+    return q(
+      'What is the equation of the vertical line through (' + k + ', ' + y + ')?',
+      'x = ' + k,
+      'Vertical lines are x = a number.',
+      'The x value stays ' + k + ', so the equation is x = ' + k + '.',
+      { kind: 'equation', line: { vertical: true, x: k } }
+    );
+  }
+  function horizSlope(r) {
+    var k = pick(r, [-3, 0, 2, 4]);
+    return q(
+      'What is the slope of the line y = ' + k + '?',
+      '0',
+      'A horizontal line does not rise or fall.',
+      'y stays ' + k + ' while x changes, so the slope is 0.',
+      { value: 0, kind: 'number' }
+    );
+  }
+  function vertSlope(r) {
+    var k = pick(r, [-2, 1, 3, 5]);
+    return q(
+      'What is the slope of the line x = ' + k + '?',
+      'undefined',
+      'A vertical line goes straight up. Rise over run would divide by 0.',
+      'Run is 0, so the slope is undefined.',
+      { kind: 'text' }
+    );
+  }
+
+  function orderClean(r) {
+    var forms = [
+      function () {
+        var a = irand(r, 2, 12), b = irand(r, 2, 9);
+        return q('What is ' + a + ' + ' + b + ' × 2?', numText(a + b * 2), 'Multiply before you add.', b + ' × 2 = ' + (b * 2) + ', then add ' + a + '. The answer is ' + (a + 2 * b) + '.', { value: a + 2 * b, kind: 'number' });
+      },
+      function () {
+        var a = irand(r, 1, 8), b = irand(r, 1, 6), c = irand(r, 2, 6);
+        return q('What is (' + a + ' + ' + b + ') × ' + c + '?', numText((a + b) * c), 'Parentheses come first.', a + ' + ' + b + ' = ' + (a + b) + ', times ' + c + ' is ' + ((a + b) * c) + '.', { value: (a + b) * c, kind: 'number' });
+      },
+      function () {
+        var d = pick(r, [2, 4, 5]), qv = irand(r, 2, 8), sub = irand(r, 1, 9);
+        var top = d * qv;
+        return q('What is ' + (top + sub) + ' − ' + top + ' / ' + d + '?', numText(top + sub - qv), 'Divide before you subtract.', top + ' / ' + d + ' = ' + qv + '. Then ' + (top + sub) + ' − ' + qv + ' = ' + (top + sub - qv) + '.', { value: top + sub - qv, kind: 'number' });
+      },
+      function () {
+        var a = irand(r, 2, 6);
+        return q('What is ' + a + ' squared plus 1?', numText(a * a + 1), 'Squaring means multiplying the number by itself. Do that before you add.', a + ' × ' + a + ' = ' + (a * a) + ', plus 1 is ' + (a * a + 1) + '.', { value: a * a + 1, kind: 'number' });
+      },
+      function () {
+        var a = irand(r, 2, 7), b = irand(r, 2, 6);
+        return q('What is 2 × (' + a + ' + ' + b + ') − 3?', numText(2 * (a + b) - 3), 'Parentheses, then multiply, then subtract.', a + ' + ' + b + ' = ' + (a + b) + '. Times 2 is ' + (2 * (a + b)) + '. Minus 3 is ' + (2 * (a + b) - 3) + '.', { value: 2 * (a + b) - 3, kind: 'number' });
+      }
+    ];
+    return pick(r, forms)();
+  }
+
+  function ineqOne(r) {
+    var a = irand(r, -6, 8); if (a === 0) a = 3;
+    var boundary = irand(r, -4, 8);
+    var right = boundary + a;
+    var op = pick(r, ['>', '<', '>=', '<=']);
+    var showOp = { '>': '>', '<': '<', '>=': '≥', '<=': '≤' }[op];
+    var ansOp = { '>': '>', '<': '<', '>=': '>=', '<=': '<=' }[op];
+    return q(
+      'Solve: x ' + (a < 0 ? '− ' + (-a) : '+ ' + a) + ' ' + showOp + ' ' + right,
+      'x ' + ({ '>': '>', '<': '<', '>=': '>=', '<=': '<=' }[op]) + ' ' + boundary,
+      'Undo the addition just like an equation. Keep the inequality sign.',
+      'Subtract ' + a + ' from both sides. x ' + showOp + ' ' + boundary + '.',
+      { kind: 'inequality', ineq: { op: ansOp, n: boundary } }
+    );
+  }
+  function ineqTwo(r) {
+    var a = pick(r, [2, 3, 4, 5]);
+    var boundary = irand(r, -3, 6);
+    var b = irand(r, -5, 6); if (b === 0) b = 1;
+    var right = a * boundary + b;
+    var op = pick(r, ['>', '<']);
+    return q(
+      'Solve: ' + linLeft(a, b) + ' ' + op + ' ' + right,
+      'x ' + op + ' ' + boundary,
+      'Undo the added number first, then divide. The sign stays, because you divide by a positive number.',
+      'Subtract ' + b + ', then divide by ' + a + '. x ' + op + ' ' + boundary + '.',
+      { kind: 'inequality', ineq: { op: op, n: boundary } }
+    );
+  }
+
+  var TEMPLATES = {
+    'slope': [slopeTwoPoints, slopeTable, slopeFromEq, slopeStandard, slopeTwoPoints],
+    'tables': [missingTable, tableMatch, slopeTable, missingTable, tableMatch],
+    'intercepts': [interceptEq, interceptPoint, interceptTable, interceptEq, interceptPoint],
+    'slope-intercept': [writeSlopeInt, writeFromPoint, writeFromTwo, rewriteStandard, writeSlopeInt],
+    'solving-equations': [solveOne, solveTwo, solveOne, solveTwo, solveOne],
+    'writing-equations': [writeWord, writeWordStart, writeWord, writeFromPoint, writeWordStart],
+    'comparing-linear-costs': [plans, plans, plans, plans, plans],
+    'constant-rate': [rateWord, rateUnit, rateTable, rateWord, rateUnit],
+    'graphing-lines': [graphSlope, graphReadY, graphHorizontal, graphSlope, graphReadY],
+    'points-on-a-line': [pointOnLine, missingY, whichPoint, pointOnLine, missingY],
+    'linear-equations': [horizEq, vertEq, horizSlope, vertSlope, horizEq],
+    'order-of-operations': [orderClean, orderClean, orderClean, orderClean, orderClean],
+    'inequalities': [ineqOne, ineqTwo, ineqOne, ineqTwo, ineqOne]
+  };
+
+  function generate(skill, seed) {
+    var temps = TEMPLATES[skill];
+    if (!temps) return null;
+    var r = rng(seed);
+    var order = temps.map(function (_, i) { return i; });
+    var i, j, tmp;
+    for (i = order.length - 1; i > 0; i--) {
+      j = Math.floor(r() * (i + 1));
+      tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+    var out = [];
+    var guard = 0;
+    while (out.length < 5 && guard < 20) {
+      var made = temps[order[guard % order.length]](r);
+      made.n = out.length + 1;
+      made.skill = skill;
+      out.push(made);
+      guard++;
+    }
+    return out;
+  }
+
+  /** Lowest percent, but only skills with enough graded points (max >= 2). Ties: most recent miss first. */
+  function weakSkills(skills, limit) {
+    var n = limit || 3;
+    function usable(minMax) {
+      return (skills || []).filter(function (s) {
+        return s && BY_ID[s.id] && s.percent != null && Number(s.max) >= minMax;
+      });
+    }
+    var list = usable(2);
+    if (!list.length) list = usable(1);
+    list.sort(function (a, b) {
+      if (a.percent !== b.percent) return a.percent - b.percent;
+      var am = a.lastMiss || '', bm = b.lastMiss || '';
+      if (am !== bm) return am < bm ? 1 : -1;
+      var al = a.label || label(a.id), bl = b.label || label(b.id);
+      return al < bl ? -1 : al > bl ? 1 : 0;
+    });
+    return list.slice(0, n);
+  }
+
+  return {
+    SKILLS: SKILLS,
+    label: label,
+    has: function (id) { return !!TEMPLATES[id]; },
+    generate: generate,
+    equivalent: equivalent,
+    weakSkills: weakSkills,
+    parseNumber: parseNumber,
+    lineOf: lineOf
+  };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = RioQuizGen;
+/* ==== RIO-QUIZ-GEN END ==== */
+</script>
+<script>
+/* ==== RIO-QUIZ START (mini quizzes — edit src/quiz-block.js, then node dev/sync-blocks.js) ==== */
+var RioQuiz = (function () {
+  'use strict';
+  var HIST = 'rio-math-quizzes';
+
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (attrs[k] == null) return;
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'class') n.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function ensureCss() {
+    if (document.getElementById('rioQuizCss')) return;
+    var s = document.createElement('style');
+    s.id = 'rioQuizCss';
+    s.textContent = [
+      '.home-practice .lead{font-weight:700;margin:0 0 8px}',
+      '.home-practice .quiz-picks{display:flex;flex-direction:column;gap:8px;margin-top:8px}',
+      '.home-practice .quiz-pick{font:inherit;font-weight:800;text-align:left;min-height:48px;padding:10px 14px;border-radius:14px;border:2px solid #c5d3fb;background:#f4f7ff;color:#2447c7;cursor:pointer;touch-action:manipulation}',
+      '.home-practice .quiz-pick.best{background:#fff8e6;border-color:#f0d48a;color:#1d2433}',
+      '.quiz-all{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}',
+      '.quiz-all[hidden]{display:none}',
+      '.quiz-wrap{padding-bottom:24px}',
+      '.quiz-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}',
+      '.quiz-top a{color:#fff;font-weight:800;font-size:.85em;text-decoration:none;background:rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;min-height:44px;display:inline-flex;align-items:center}',
+      '.quiz-card{background:#fff;border:1px solid #d6def0;border-radius:20px;padding:16px;margin:0 0 12px}',
+      '.quiz-k{font-size:.78em;font-weight:800;letter-spacing:.04em;color:#5b6475}',
+      '.quiz-prompt{font-weight:700;white-space:pre-wrap;margin:8px 0}',
+      '.quiz-graph{display:block;width:100%;height:auto;background:#fffdf8;border:2px solid #efe6d2;border-radius:12px;margin:8px 0}',
+      '.quiz-choices{display:flex;flex-direction:column;gap:8px}',
+      '.quiz-choices button{font:inherit;font-weight:800;text-align:left;min-height:48px;padding:10px 14px;border-radius:14px;border:2px solid #b9c6e6;background:#fff;cursor:pointer;touch-action:manipulation}',
+      '.quiz-choices button[aria-pressed=true]{background:#3867ff;border-color:#3867ff;color:#fff}',
+      '#quizAnswer{width:100%;font:inherit;font-size:1.15em;padding:12px 14px;border:2px solid #b9c6e6;border-radius:14px;margin-top:8px}',
+      '.quiz-keys{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px}',
+      '.quiz-keys button{font:inherit;font-weight:800;min-height:44px;border-radius:12px;border:2px solid #d6def0;background:#fff;cursor:pointer;touch-action:manipulation}',
+      '.quiz-keys .op{background:#e8eeff;color:#2447c7}',
+      '.quiz-fb{border-radius:14px;padding:12px;margin-top:10px}',
+      '.quiz-fb.good{background:#e7f8ee;border:2px solid #8fd3ab}',
+      '.quiz-fb.bad{background:#fff4f2;border:2px solid #f5b5ae}',
+      '.quiz-fb .steps{white-space:pre-wrap;margin-top:6px}',
+      '.quiz-end{text-align:center;padding:12px 6px 4px}',
+      '.quiz-end .big{font-size:2.4em;line-height:1}',
+      '.quiz-stars{font-size:.9em;color:#5b6475}',
+      '#homeQuizHistory .trend{font-variant-numeric:tabular-nums}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+  function loadHist() {
+    try {
+      var o = JSON.parse(localStorage.getItem(HIST) || 'null');
+      return (o && Array.isArray(o.quizzes)) ? o.quizzes : [];
+    } catch (e) { return []; }
+  }
+  function saveHist(list) {
+    try { localStorage.setItem(HIST, JSON.stringify({ v: 1, quizzes: list.slice(-40) })); } catch (e) {}
+  }
+  function stars() {
+    return loadHist().filter(function (q) { return q && q.star; }).length;
+  }
+  function bySkill() {
+    var map = {};
+    loadHist().forEach(function (q) {
+      if (!q || !q.skill) return;
+      if (!map[q.skill]) map[q.skill] = [];
+      map[q.skill].push(q);
+    });
+    return map;
+  }
+
+  function practiceCard(model, onStart) {
+    ensureCss();
+    var skills = (model && model.skills) || [];
+    var weak = (window.RioQuizGen && RioQuizGen.weakSkills(skills, 3)) || [];
+    function nice(s) {
+      return (window.RioQuizGen && RioQuizGen.has(s.id) && RioQuizGen.label(s.id)) || s.label || s.id;
+    }
+    var best = weak[0];
+    var lead = best
+      ? ('You can get stronger at ' + nice(best) + '. That is your lowest score with a few tries (' + best.percent + '%). A mini quiz is 5 questions, about 3 minutes.')
+      : 'Pick a skill and try 5 quick questions. About 3 minutes, and a new set every time.';
+    var picks = el('div', { class: 'quiz-picks' });
+    weak.forEach(function (s, i) {
+      var name = nice(s);
+      picks.appendChild(el('button', {
+        type: 'button', class: 'quiz-pick' + (i === 0 ? ' best' : ''), 'data-skill': s.id,
+        text: (i === 0 ? 'Start: ' : '') + name + ' · ' + s.percent + '%',
+        onclick: function () { onStart(s.id); },
+      }));
+    });
+    var all = el('div', { class: 'quiz-all', id: 'quizAllSkills', hidden: 'hidden' });
+    var catalog = (window.RioQuizGen && RioQuizGen.SKILLS) || [];
+    catalog.forEach(function (s) {
+      all.appendChild(el('button', {
+        type: 'button', class: 'home-chip', 'data-skill': s.id, text: s.label,
+        onclick: function () { onStart(s.id); },
+      }));
+    });
+    var more = el('button', {
+      type: 'button', class: 'quiz-pick', id: 'quizPickAny', text: 'Pick any skill',
+      onclick: function () { all.hidden = !all.hidden; more.textContent = all.hidden ? 'Pick any skill' : 'Hide the skill list'; },
+    });
+    return el('section', { class: 'home-card home-practice', id: 'homePractice' }, [
+      el('h2', { text: '🎯 Practice my weak spots' }),
+      el('p', { class: 'lead', text: lead }),
+      picks,
+      more,
+      all,
+    ]);
+  }
+
+  function historyCard() {
+    ensureCss();
+    var groups = bySkill();
+    var ids = Object.keys(groups);
+    if (!ids.length) return null;
+    var box = el('section', { class: 'home-card', id: 'homeQuizHistory' }, [
+      el('h2', { text: '📝 Mini quiz practice' }),
+    ]);
+    var nStars = stars();
+    if (nStars) box.appendChild(el('p', { class: 'quiz-stars', text: nStars + ' practice star' + (nStars === 1 ? '' : 's') + ' on this phone (4 or 5 right).' }));
+    var list = el('ul', { class: 'home-skill-list' });
+    ids.sort(function (a, b) {
+      var aa = groups[a][groups[a].length - 1].at || '', bb = groups[b][groups[b].length - 1].at || '';
+      return aa < bb ? 1 : -1;
+    }).forEach(function (id) {
+      var rows = groups[id];
+      var pts = 0, max = 0;
+      rows.forEach(function (q) { pts += Number(q.score) || 0; max += Number(q.total) || 0; });
+      var pct = max ? Math.round(100 * pts / max) : 0;
+      var recent = rows.slice(-5).map(function (q) { return (q.score || 0) + '/' + (q.total || 5); }).join(' · ');
+      list.appendChild(el('li', null, [
+        el('div', { class: 'home-skill-top' }, [
+          el('b', { text: (rows[0] && rows[0].label) || (window.RioQuizGen ? RioQuizGen.label(id) : id) }),
+          el('span', { text: pct + '%' }),
+        ]),
+        el('div', { class: 'home-track' }, [el('div', { class: 'home-fill', style: 'width:' + pct + '%;background:#3867ff' })]),
+        el('small', { class: 'trend', text: recent }),
+      ]));
+    });
+    box.appendChild(list);
+    return box;
+  }
+
+  function svgEl(tag, attrs) {
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+  function graphNode(g) {
+    var W = 320, H = 200, L = 32, R = 10, T = 12, B = 24;
+    var xmin = g.xmin, xmax = g.xmax, ymin = g.ymin, ymax = g.ymax;
+    function X(x) { return L + (x - xmin) / (xmax - xmin) * (W - L - R); }
+    function Y(y) { return T + (ymax - y) / (ymax - ymin) * (H - T - B); }
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'quiz-graph', role: 'img', 'aria-label': 'Graph of the line' });
+    var x, y;
+    for (x = Math.ceil(xmin); x <= xmax; x++) {
+      svg.appendChild(svgEl('line', { x1: X(x), x2: X(x), y1: T, y2: H - B, stroke: '#f3e6c8', 'stroke-width': '1' }));
+    }
+    for (y = Math.ceil(ymin); y <= ymax; y++) {
+      svg.appendChild(svgEl('line', { x1: L, x2: W - R, y1: Y(y), y2: Y(y), stroke: '#f3e6c8', 'stroke-width': '1' }));
+    }
+    if (ymin <= 0 && ymax >= 0) svg.appendChild(svgEl('line', { x1: L, x2: W - R, y1: Y(0), y2: Y(0), stroke: '#1d2433', 'stroke-width': '2' }));
+    if (xmin <= 0 && xmax >= 0) svg.appendChild(svgEl('line', { x1: X(0), x2: X(0), y1: T, y2: H - B, stroke: '#1d2433', 'stroke-width': '2' }));
+    var y1 = g.m * xmin + g.b, y2 = g.m * xmax + g.b;
+    svg.appendChild(svgEl('line', { x1: X(xmin), y1: Y(y1), x2: X(xmax), y2: Y(y2), stroke: '#3867ff', 'stroke-width': '3', 'stroke-linecap': 'round' }));
+    if (g.markX != null) {
+      var my = g.m * g.markX + g.b;
+      svg.appendChild(svgEl('circle', { cx: X(g.markX), cy: Y(my), r: '5', fill: '#e5484d' }));
+    }
+    return svg;
+  }
+
+  function mount(container, opts) {
+    ensureCss();
+    opts = opts || {};
+    var skill = String(opts.skill || '').trim();
+    var today = opts.today || '';
+    var base = String(opts.baseUrl || '').split('?')[0];
+    var homeHref = base || '#';
+    if (!window.RioQuizGen || !RioQuizGen.has(skill)) {
+      container.appendChild(el('div', { class: 'quiz-wrap' }, [
+        el('header', { class: 'top' }, [
+          el('div', { class: 'quiz-top' }, [el('a', { href: homeHref, text: '🏠 Home' })]),
+          el('h1', { text: 'Mini quiz' }),
+        ]),
+        el('div', { class: 'quiz-card' }, [
+          el('p', { text: 'That skill does not have a mini quiz yet. Go home and pick another one.' }),
+        ]),
+      ]));
+      return;
+    }
+    var label = RioQuizGen.label(skill);
+    var seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+    if (!seed) seed = 1;
+    var questions = RioQuizGen.generate(skill, seed);
+    var quizId = 'mq_' + (seed.toString(36) + Math.floor(Math.random() * 1e9).toString(36)).replace(/[^a-z0-9]/g, '').slice(0, 12);
+    var i = 0, given = [], rights = [], picked = '';
+    var root = el('div', { class: 'quiz-wrap', id: 'quiz' });
+    root.setAttribute('data-skill', skill);
+    root.setAttribute('data-seed', String(seed));
+    var head = el('header', { class: 'top' }, [
+      el('div', { class: 'quiz-top' }, [el('a', { class: 'back-home', href: homeHref, text: '🏠 Home' })]),
+      el('h1', { text: 'Mini quiz' }),
+      el('div', { class: 'date', id: 'quizSkillName', text: label }),
+    ]);
+    var card = el('div', { class: 'quiz-card', id: 'quizCard' });
+    root.appendChild(head);
+    root.appendChild(card);
+    container.appendChild(root);
+
+    function scratchBtn(q) {
+      return el('button', {
+        type: 'button', class: 'scratch-open', id: 'quizScratch', text: '📝 Scratch paper',
+        onclick: function () {
+          if (!window.RioScratch) return;
+          RioScratch.open({
+            date: 'quiz-' + (today || 'day'),
+            id: quizId + '-q' + q.n,
+            heading: 'Question ' + q.n + ' · ' + label,
+            text: q.prompt,
+            attach: false,
+          });
+        },
+      });
+    }
+    function keys(input) {
+      var box = el('div', { class: 'quiz-keys', id: 'quizKeys' });
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', '/', 'x', 'y', '(', ')', '+', '−', '=', '⌫'].forEach(function (k) {
+        box.appendChild(el('button', {
+          type: 'button', class: (k === '+' || k === '−' || k === '=' || k === '⌫') ? 'op' : '', text: k,
+          onclick: function () {
+            if (k === '⌫') input.value = input.value.slice(0, -1);
+            else input.value += (k === '−' ? '-' : k);
+            input.focus();
+          },
+        }));
+      });
+      return box;
+    }
+    function showQ() {
+      var q = questions[i];
+      picked = '';
+      card.innerHTML = '';
+      card.appendChild(el('div', { class: 'quiz-k', text: 'QUESTION ' + (i + 1) + ' OF 5' }));
+      card.appendChild(el('div', { class: 'quiz-prompt', id: 'quizPrompt', text: q.prompt }));
+      if (q.graph) card.appendChild(graphNode(q.graph));
+      if (q.kind === 'choice' && q.choices) {
+        var choices = el('div', { class: 'quiz-choices', id: 'quizChoices' });
+        q.choices.forEach(function (c) {
+          choices.appendChild(el('button', {
+            type: 'button', 'data-choice': c, text: c,
+            onclick: function () {
+              picked = c;
+              Array.prototype.forEach.call(choices.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-choice') === c ? 'true' : 'false'); });
+            },
+          }));
+        });
+        card.appendChild(choices);
+      } else {
+        var input = el('input', { id: 'quizAnswer', type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'Your answer', 'aria-label': 'Your answer' });
+        card.appendChild(input);
+        card.appendChild(keys(input));
+      }
+      card.appendChild(scratchBtn(q));
+      card.appendChild(el('div', { style: 'height:10px' }));
+      card.appendChild(el('button', { type: 'button', class: 'btn', id: 'quizCheck', text: 'Check', onclick: check }));
+    }
+    function check() {
+      var q = questions[i];
+      var input = document.getElementById('quizAnswer');
+      var answer = q.kind === 'choice' ? picked : (input ? input.value.trim() : '');
+      if (!answer) {
+        var fb0 = document.getElementById('quizFeedback');
+        if (!fb0) {
+          fb0 = el('div', { class: 'quiz-fb bad', id: 'quizFeedback' });
+          card.insertBefore(fb0, document.getElementById('quizCheck'));
+        }
+        fb0.textContent = q.kind === 'choice' ? 'Tap one of the choices first.' : 'Type an answer first.';
+        return;
+      }
+      var right = RioQuizGen.equivalent(answer, q.answer);
+      given[i] = answer;
+      rights[i] = right;
+      var fb = el('div', { class: 'quiz-fb ' + (right ? 'good' : 'bad'), id: 'quizFeedback' });
+      fb.appendChild(el('div', { class: 'quiz-k', text: right ? 'YES!' : 'NOT QUITE' }));
+      fb.appendChild(el('p', { text: right ? 'That is right.' : q.hint }));
+      if (!right) fb.appendChild(el('p', { text: 'The answer is ' + q.answer + '.' }));
+      fb.appendChild(el('div', { class: 'steps', text: q.steps }));
+      var btn = document.getElementById('quizCheck');
+      btn.parentNode.replaceChild(fb, btn);
+      var next = el('button', {
+        type: 'button', class: 'btn', id: 'quizNext', text: i === 4 ? 'See my score' : 'Next question',
+        onclick: function () { if (i === 4) finish(); else { i++; showQ(); } },
+      });
+      card.appendChild(next);
+      if (input) input.disabled = true;
+      var choiceBox = document.getElementById('quizChoices');
+      if (choiceBox) Array.prototype.forEach.call(choiceBox.children, function (b) { b.disabled = true; });
+    }
+    function finish() {
+      var score = rights.filter(Boolean).length;
+      var star = score >= 4;
+      var recQuestions = questions.map(function (q, n) {
+        return { n: n + 1, prompt: q.prompt, expected: q.answer, given: given[n] || '', right: !!rights[n] };
+      });
+      var rec = { id: quizId, skill: skill, label: label, at: new Date().toISOString(), score: score, total: 5, star: star, questions: recQuestions };
+      var list = loadHist();
+      list.push(rec);
+      saveHist(list);
+      card.innerHTML = '';
+      var end = el('div', { class: 'quiz-end', id: 'quizDone' });
+      end.appendChild(el('div', { class: 'big', text: star ? '🎉' : '💪' }));
+      end.appendChild(el('h2', { text: score + ' out of 5' }));
+      end.appendChild(el('p', { text: star ? 'Awesome! You really practiced ' + label + '.' : 'Good practice. The tricky ones are worth another try.' }));
+      if (star) end.appendChild(el('p', { class: 'quiz-stars', text: 'You earned a practice star on this phone.' }));
+      var sent = el('p', { class: 'muted', id: 'quizSent', text: 'Saving for Dad…' });
+      end.appendChild(sent);
+      end.appendChild(el('button', { type: 'button', class: 'btn', id: 'quizAgain', text: 'Try another', onclick: function () {
+        window.top.location.href = homeHref || (location.pathname);
+      } }));
+      end.appendChild(el('div', { style: 'height:8px' }));
+      end.appendChild(el('button', { type: 'button', class: 'btn secondary', id: 'quizSame', text: 'Same skill again', onclick: function () {
+        window.top.location.href = (homeHref || location.pathname) + '?quiz=' + encodeURIComponent(skill);
+      } }));
+      card.appendChild(end);
+      send(rec, sent);
+    }
+    function send(rec, sent) {
+      var payload = { id: rec.id, skill: rec.skill, score: rec.score, total: rec.total, questions: rec.questions };
+      try {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            sent.textContent = (res && res.ok) ? 'Sent to Dad. This does not count as today\'s test.' : 'Saved on this phone.';
+          })
+          .withFailureHandler(function () {
+            sent.textContent = 'Saved on this phone. Dad will see it after the math server is updated.';
+          })
+          .submitMiniQuiz(payload);
+      } catch (e) {
+        sent.textContent = 'Saved on this phone. Dad will see it after the math server is updated.';
+      }
+    }
+    showQ();
+  }
+
+  ensureCss();
+  return { practiceCard: practiceCard, historyCard: historyCard, mount: mount, loadHist: loadHist };
+})();
+/* ==== RIO-QUIZ END ==== */
 </script>
 <script>
 window.__rioStart = function () {
@@ -2501,6 +3662,12 @@ window.__rioStart = function () {
 
   function render() {
     RioInbox.mount(app);   // header strip: messages from Dad, tokens, certificates (stays hidden if the backend doesn't have it)
+    if (DATA && DATA.mode === 'quiz') {
+      document.body.classList.add('is-home');
+      document.getElementById('bar').hidden = true;
+      RioQuiz.mount(app, { skill: DATA.quiz || '', today: DATA.today, baseUrl: DATA.baseUrl || '' });
+      return;
+    }
     if (DATA && DATA.mode === 'home') {
       document.body.classList.add('is-home');
       document.getElementById('bar').hidden = true;
@@ -3341,7 +4508,8 @@ window.__rioStart = function () {
 </script>
 <script>
 /* Loader. No ?date= opens Rio's home screen (calendar, scores, skills). ?date=YYYY-MM-DD fetches that
-   day's questions-only test. Every call omits cookies. */
+   day's questions-only test. ?quiz=skill opens a mini quiz made in the page (not a daily test).
+   If both are set, the quiz wins. Every call omits cookies. */
 (function () {
   'use strict';
   var app = document.getElementById('app');
@@ -3350,8 +4518,12 @@ window.__rioStart = function () {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     } catch (e) { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
   }
-  var requested = '';
-  try { requested = (new URLSearchParams(location.search).get('date') || '').trim(); } catch (e) {}
+  var requested = '', quizSkill = '';
+  try {
+    var qs = new URLSearchParams(location.search);
+    requested = (qs.get('date') || '').trim();
+    quizSkill = (qs.get('quiz') || '').trim();
+  } catch (e) {}
   var baseUrl = location.origin + location.pathname;
   function node(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
   function showLoading() {
@@ -3410,7 +4582,32 @@ window.__rioStart = function () {
       startHome(inbox, (inbox && inbox.today) || tokyoToday());
     }, function () { startHome(null, tokyoToday()); });
   }
-  if (requested) load(); else loadHome();
+  function startQuiz(rio, day) {
+    DATA = {
+      mode: 'quiz',
+      quiz: quizSkill,
+      test: null,
+      error: null,
+      requested: '',
+      today: day || tokyoToday(),
+      recent: [],
+      rio: rio,
+      baseUrl: baseUrl
+    };
+    document.title = 'Mini quiz';
+    app.innerHTML = '';
+    window.__rioStart();
+  }
+  function loadQuiz() {
+    showLoading();
+    rioFetchJSON(RIO_API_URL + '?format=json&api=rio', { method: 'GET' }, 45000).then(function (res) {
+      var inbox = (res && res.ok === true && res.api === 'rio') ? res : null;
+      startQuiz(inbox, (inbox && inbox.today) || tokyoToday());
+    }, function () { startQuiz(null, tokyoToday()); });
+  }
+  if (quizSkill) loadQuiz();
+  else if (requested) load();
+  else loadHome();
 })();
 </script>
 </body>
