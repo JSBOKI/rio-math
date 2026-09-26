@@ -10,3 +10,6 @@ Google can't tell which account (if any) is signed in on the device.
 * Links: `https://<user>.github.io/rio-math/?date=YYYY-MM-DD`. With no date it shows today's test (Tokyo time).
 
 Answer keys are never in this repo or on the page. The backend only serves questions.
+
+Rio's inbox (top strip: messages from Dad, tokens, certificates, scores) reads `<exec>?format=json&api=rio` and marks messages read with a
+text/plain POST `{"action":"markRead","ids":[...]}`, also with no cookies. If the backend doesn't have that API yet, the strip stays hidden.

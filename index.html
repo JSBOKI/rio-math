@@ -207,6 +207,61 @@
     .stamp { grid-template-columns: 1fr; }
     .btn { padding: 14px 18px; }
   }
+  /* ---------- Rio's inbox strip (messages from Dad, tokens, certificates, scores) ---------- */
+  .rio-strip { margin: 0 0 12px; }
+  .rio-strip[hidden] { display: none; }
+  .rio-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rio-chip { flex: 1 1 auto; position: relative; font: inherit; font-weight: 800; font-size: .8em; min-height: 44px; padding: 6px 8px;
+    border-radius: 99px; border: 2px solid #c5d3fb; background: #fff; color: var(--ink); cursor: pointer; touch-action: manipulation; white-space: nowrap; }
+  .rio-chip.hot { border-color: #f59e0b; background: #fff8e6; }
+  .rio-badge { display: inline-block; min-width: 22px; padding: 1px 7px; margin-left: 6px; border-radius: 99px; background: #e5484d; color: #fff;
+    font-size: .8em; line-height: 1.5; text-align: center; vertical-align: 1px; }
+  .rio-badge.new { background: #f59e0b; font-size: .68em; letter-spacing: .5px; }
+  .rio-dot { position: absolute; top: 4px; right: 6px; width: 11px; height: 11px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px #fff; }
+  .rio-news { display: block; width: 100%; margin-top: 8px; font: inherit; font-size: .9em; text-align: left; padding: 10px 14px; border-radius: 14px;
+    border: 2px solid #f6d58a; background: #fff8e6; color: #7a4b00; cursor: pointer; animation: rioPulse 2s ease-in-out 3; }
+  @keyframes rioPulse { 50% { box-shadow: 0 0 0 6px rgba(245,158,11,.25); } }
+  .rio-overlay { position: fixed; inset: 0; z-index: 25; background: rgba(20,26,40,.55); display: flex; align-items: flex-end; justify-content: center; }
+  .rio-overlay[hidden] { display: none; }
+  .rio-sheet { background: #fff; width: 100%; max-width: 760px; max-height: 92vh; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+  .rio-sheet-head { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--line); background: #f7f9ff; }
+  .rio-sheet-head h2 { flex: 1; margin: 0; font-size: 1.1em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rio-back { font: inherit; font-weight: 700; font-size: .85em; border: 2px solid #c5d3fb; background: #fff; border-radius: 12px; min-height: 44px; padding: 0 10px; cursor: pointer; }
+  .rio-sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+  .rio-msg { border: 2px solid var(--line); border-radius: 16px; padding: 10px 14px; margin-bottom: 10px; }
+  .rio-msg.new { border-color: #f6d58a; background: #fffbef; }
+  .rio-msg-meta { font-size: .78em; color: var(--muted); font-weight: 600; }
+  .rio-msg-meta .rio-badge { margin-left: 0; margin-right: 4px; }
+  .rio-msg-text { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; font-size: 1.05em; }
+  .rio-bigcount { text-align: center; margin: 6px 0 14px; }
+  .rio-bigcount .num { font-size: 3.4em; font-weight: 900; line-height: 1; color: #b8860b; }
+  .rio-ledger, .rio-scores { list-style: none; margin: 0; padding: 0; }
+  .rio-ledger li { display: grid; grid-template-columns: 56px 1fr; gap: 0 10px; padding: 8px 0; border-top: 1px solid var(--line); align-items: baseline; }
+  .rio-ledger li small { grid-column: 2; color: var(--muted); font-size: .75em; }
+  .rio-ledger .plus { color: var(--good); font-size: 1.1em; } .rio-ledger .minus { color: #b42318; font-size: 1.1em; }
+  .rio-ledger .why { overflow-wrap: anywhere; }
+  .rio-scores li { padding: 10px 0; border-top: 1px solid var(--line); }
+  .rio-scores .top { display: flex; justify-content: space-between; gap: 10px; }
+  .rio-scores .track { height: 12px; background: #e3e8f5; border-radius: 99px; overflow: hidden; margin: 4px 0; }
+  .rio-scores .fill { height: 100%; background: linear-gradient(90deg, #7b9cff, #3867ff); }
+  .rio-scores .fill.good { background: linear-gradient(90deg, #34c77b, #1f9d55); }
+  .rio-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .rio-cert-thumb { position: relative; font: inherit; padding: 6px; border-radius: 14px; border: 2px solid var(--line); background: #fff; cursor: pointer; text-align: center; }
+  .rio-cert-thumb svg { display: block; width: 100%; height: auto; border-radius: 6px; }
+  .rio-cert-thumb .cap { display: block; font-weight: 800; font-size: .8em; margin-top: 4px; line-height: 1.25; }
+  .rio-cert-thumb .rio-badge { position: absolute; top: -8px; right: -6px; }
+  .rio-cert-big svg { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(29,36,51,.15); }
+  .rio-cert-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 6px; }
+  .rio-cert-actions .btn { flex: 1 1 140px; text-align: center; text-decoration: none; font-size: .95em; }
+  .rio-cert-png { display: block; width: 100%; border-radius: 8px; border: 2px solid var(--line); margin-top: 10px; }
+  #rioPrint { display: none; }
+  @media print {
+    body.print-cert > *:not(#rioPrint) { display: none !important; }
+    body.print-cert #rioPrint { display: block !important; }
+    body.print-cert { background: #fff; }
+    #rioPrint svg { width: 100%; height: auto; }
+  }
+  @media (min-width: 760px) { .rio-overlay { align-items: center; padding: 20px; } .rio-sheet { border-radius: 24px; } }
   .loading { text-align: center; padding: 60px 10px; color: var(--muted); }
   .loading .spin { width: 44px; height: 44px; margin: 0 auto 14px; border-radius: 50%; border: 5px solid var(--line);
     border-top-color: var(--accent); animation: rspin 0.9s linear infinite; }
@@ -330,6 +385,26 @@
           body: JSON.stringify(payload) }, 180000)
           .then(function (res) {
             if (!res || res.ok !== true) throw new Error((res && res.error) || 'The math server said no.');
+            ok(res);
+          })
+          .catch(function (e) { fail(e); });
+      },
+      /* Rio's inbox (messages from Dad, tokens, certificates, scores): GET ?format=json&api=rio. An older backend
+         without it answers with the plain test JSON (no api:'rio'), so this fails and the page just hides the strip. */
+      rioData: function () {
+        rioFetchJSON(RIO_API_URL + '?format=json&api=rio', { method: 'GET' }, 30000)
+          .then(function (res) {
+            if (!res || res.ok !== true || res.api !== 'rio') throw new Error('No inbox on this server yet.');
+            ok(res);
+          })
+          .catch(function (e) { fail(e); });
+      },
+      /* The only other public write: set read flags on existing message ids (text/plain POST, no cookies). */
+      rioMarkRead: function (ids) {
+        rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'markRead', ids: ids }) }, 30000)
+          .then(function (res) {
+            if (!res || res.ok !== true) throw new Error((res && res.error) || 'Could not mark as read.');
             ok(res);
           })
           .catch(function (e) { fail(e); });
@@ -826,6 +901,360 @@ var RioMath = (function () {
 /* ==== RIO-MATH-CORE END ==== */
 </script>
 <script>
+/* ==== RIO-CERT START (certificate renderer; shared by Index.html and Dashboard.html — edit in Index.html, then run node dev/sync-cert.js) ==== */
+var RioCert = (function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 1100, H = 780;
+  var THEMES = {
+    gold:   { main: '#b8860b', dark: '#7a5a00', light: '#f3d98b', bg: '#fffaf0', seal: '#e0a800' },
+    blue:   { main: '#2447c7', dark: '#16307f', light: '#b9c8ff', bg: '#f6f8ff', seal: '#3867ff' },
+    green:  { main: '#1f8a4c', dark: '#115c31', light: '#a8e3c1', bg: '#f5fff8', seal: '#27a95f' },
+    purple: { main: '#6a3fd1', dark: '#44238f', light: '#d4c4ff', bg: '#faf7ff', seal: '#7b5cff' }
+  };
+  var PRESETS = [
+    { id: 'linear-star', title: 'Linear Equations Star', emoji: '⭐', theme: 'gold', message: 'For great work on slope, intercepts and graphing lines.' },
+    { id: 'streak-7', title: '7-Day Streak', emoji: '🔥', theme: 'purple', message: 'For doing math practice seven days in a row!' },
+    { id: 'perfect', title: 'Perfect Score', emoji: '💯', theme: 'green', message: 'Every answer right. Amazing!' },
+    { id: 'hard-worker', title: 'Hard Worker Award', emoji: '💪', theme: 'blue', message: 'For sticking with it, even on the tricky ones.' },
+    { id: 'custom', title: '', emoji: '🏅', theme: 'gold', message: '' }
+  ];
+  function preset(id) { for (var i = 0; i < PRESETS.length; i++) if (PRESETS[i].id === id) return PRESETS[i]; return PRESETS[PRESETS.length - 1]; }
+  function prettyDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    if (!m) return String(iso || '');
+    var names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return names[+m[2] - 1] + ' ' + (+m[3]) + ', ' + m[1];
+  }
+  function wrap(text, maxChars, maxLines) {
+    var words = String(text || '').split(/\s+/).filter(Boolean), lines = [], cur = '';
+    words.forEach(function (w) {
+      if (!cur) cur = w;
+      else if ((cur + ' ' + w).length <= maxChars) cur += ' ' + w;
+      else { lines.push(cur); cur = w; }
+    });
+    if (cur) lines.push(cur);
+    if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, '') + '…'; }
+    return lines;
+  }
+  function n(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function star(cx, cy, r1, r2, points) {
+    var pts = [];
+    for (var i = 0; i < points * 2; i++) {
+      var r = i % 2 ? r2 : r1, a = Math.PI / points * i - Math.PI / 2;
+      pts.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+  var SERIF = 'Georgia, "Times New Roman", "Noto Serif", serif';
+  var SCRIPT = '"Snell Roundhand", "Apple Chancery", "Brush Script MT", "Segoe Script", "URW Chancery L", cursive';
+  /** cert = { title, message, date: 'YYYY-MM-DD', signed, name, theme, preset } -> <svg> element (text only via textContent). */
+  function svg(cert) {
+    cert = cert || {};
+    var t = THEMES[cert.theme] || THEMES[preset(cert.preset).theme] || THEMES.gold;
+    var s = n('svg', { xmlns: NS, viewBox: '0 0 ' + W + ' ' + H, width: '100%', role: 'img',
+      'aria-label': 'Certificate: ' + (cert.title || '') + ' for ' + (cert.name || 'Rio') });
+    s.appendChild(n('rect', { x: 0, y: 0, width: W, height: H, fill: t.bg }));
+    s.appendChild(n('rect', { x: 18, y: 18, width: W - 36, height: H - 36, fill: 'none', stroke: t.main, 'stroke-width': 14, rx: 10 }));
+    s.appendChild(n('rect', { x: 44, y: 44, width: W - 88, height: H - 88, fill: 'none', stroke: t.light, 'stroke-width': 4, rx: 6 }));
+    s.appendChild(n('rect', { x: 54, y: 54, width: W - 108, height: H - 108, fill: 'none', stroke: t.main, 'stroke-width': 1.5, 'stroke-dasharray': '6 6', rx: 4 }));
+    [[70, 70], [W - 70, 70], [70, H - 70], [W - 70, H - 70]].forEach(function (p) {
+      s.appendChild(n('polygon', { points: star(p[0], p[1], 22, 9, 5), fill: t.main }));
+    });
+    s.appendChild(n('text', { x: W / 2, y: 138, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 58, 'font-weight': 700,
+      'letter-spacing': 10, fill: t.dark }, 'CERTIFICATE'));
+    s.appendChild(n('text', { x: W / 2, y: 182, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 28, 'font-style': 'italic',
+      'letter-spacing': 3, fill: t.main }, 'of Achievement'));
+    s.appendChild(n('text', { x: W / 2, y: 238, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 24, fill: '#555' },
+      'This certificate is proudly presented to'));
+    s.appendChild(n('text', { x: W / 2, y: 330, 'text-anchor': 'middle', 'font-family': SCRIPT, 'font-size': 92, fill: '#1d2433' }, cert.name || 'Rio'));
+    s.appendChild(n('line', { x1: 300, y1: 352, x2: W - 300, y2: 352, stroke: t.light, 'stroke-width': 3 }));
+    var title = String(cert.title || '');
+    var tsize = Math.max(28, Math.min(54, Math.floor(1500 / Math.max(10, title.length))));
+    s.appendChild(n('text', { x: W / 2, y: 422, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': tsize, 'font-weight': 700,
+      fill: t.main }, title));
+    wrap(cert.message, 62, 3).forEach(function (line, i) {
+      s.appendChild(n('text', { x: W / 2, y: 478 + i * 36, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 26,
+        'font-style': 'italic', fill: '#333' }, line));
+    });
+    // date (left) and signature (right)
+    s.appendChild(n('text', { x: 250, y: 652, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 26, fill: '#1d2433' }, prettyDate(cert.date)));
+    s.appendChild(n('line', { x1: 120, y1: 668, x2: 380, y2: 668, stroke: '#1d2433', 'stroke-width': 2 }));
+    s.appendChild(n('text', { x: 250, y: 698, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 20, fill: '#666', 'letter-spacing': 2 }, 'DATE'));
+    s.appendChild(n('text', { x: W - 250, y: 654, 'text-anchor': 'middle', 'font-family': SCRIPT, 'font-size': 54, fill: t.dark }, cert.signed || 'Dad'));
+    s.appendChild(n('line', { x1: W - 380, y1: 668, x2: W - 120, y2: 668, stroke: '#1d2433', 'stroke-width': 2 }));
+    s.appendChild(n('text', { x: W - 250, y: 698, 'text-anchor': 'middle', 'font-family': SERIF, 'font-size': 20, fill: '#666', 'letter-spacing': 2 }, 'SIGNED'));
+    // seal with ribbons
+    var cx = W / 2, cy = 648;
+    s.appendChild(n('polygon', { points: (cx - 40) + ',' + (cy + 20) + ' ' + (cx - 64) + ',' + (cy + 100) + ' ' + (cx - 38) + ',' + (cy + 86) + ' ' + (cx - 22) + ',' + (cy + 110) + ' ' + (cx - 6) + ',' + (cy + 30), fill: t.main }));
+    s.appendChild(n('polygon', { points: (cx + 40) + ',' + (cy + 20) + ' ' + (cx + 64) + ',' + (cy + 100) + ' ' + (cx + 38) + ',' + (cy + 86) + ' ' + (cx + 22) + ',' + (cy + 110) + ' ' + (cx + 6) + ',' + (cy + 30), fill: t.main }));
+    s.appendChild(n('polygon', { points: star(cx, cy, 64, 54, 24), fill: t.seal }));
+    s.appendChild(n('circle', { cx: cx, cy: cy, r: 46, fill: 'none', stroke: '#fff', 'stroke-width': 3 }));
+    s.appendChild(n('polygon', { points: star(cx, cy, 30, 12, 5), fill: '#fff' }));
+    return s;
+  }
+  /** Renders the certificate to a PNG data URL (for "Save picture"). */
+  function toPng(cert, scale, cb) {
+    var el = svg(cert);
+    el.setAttribute('width', W); el.setAttribute('height', H);
+    var xml = new XMLSerializer().serializeToString(el);
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = W * (scale || 2); c.height = H * (scale || 2);
+        var ctx = c.getContext('2d');
+        ctx.scale(scale || 2, scale || 2);
+        ctx.drawImage(img, 0, 0, W, H);
+        cb(null, c.toDataURL('image/png'));
+      } catch (e) { cb(e); }
+    };
+    img.onerror = function () { cb(new Error('Could not draw the certificate.')); };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  }
+  return { svg: svg, toPng: toPng, PRESETS: PRESETS, THEMES: THEMES, preset: preset, prettyDate: prettyDate, W: W, H: H };
+})();
+/* ==== RIO-CERT END ==== */
+</script>
+<script>
+/* ==== RIO-INBOX START (messages from Dad, tokens, certificates, scores; hidden if the backend doesn't have api=rio yet) ==== */
+var RioInbox = (function () {
+  'use strict';
+  var data = null, stripEl = null, overlay = null, sheet = null, lastLoad = 0, current = null;
+  var SEEN_KEY = 'rio-math-certs-seen';
+  function noop() {}
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'class') n.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  /** Same calls on both builds: google.script.run on the Apps Script page, the cookie-free fetch shim on GitHub Pages. */
+  function api(fn, args, ok, fail) {
+    fail = fail || noop;
+    try {
+      var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
+      if (typeof r[fn] !== 'function') { fail(new Error('not available')); return; }
+      r[fn].apply(r, args || []);
+    } catch (e) { fail(e); }
+  }
+  function seen() { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { return []; } }
+  function markSeen(ids) {
+    var s = seen(); ids.forEach(function (id) { if (s.indexOf(id) === -1) s.push(id); });
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(s.slice(-300))); } catch (e) {}
+  }
+  function when(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return String(iso || '');
+    try {
+      return d.toLocaleString('en-US', { timeZone: 'Asia/Tokyo', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch (e) { return d.toLocaleString(); }
+  }
+  function shortDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return iso;
+    var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 12));
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
+  function unread() { return (data && data.messages || []).filter(function (m) { return !m.read; }); }
+  function newCerts() { var s = seen(); return (data && data.certificates || []).filter(function (c) { return s.indexOf(c.id) === -1; }); }
+
+  function strip() {
+    stripEl = el('div', { class: 'rio-strip', id: 'rioStrip', hidden: '' });
+    return stripEl;
+  }
+  function drawStrip() {
+    if (!stripEl) return;
+    stripEl.innerHTML = '';
+    if (!data) { stripEl.hidden = true; return; }
+    var u = unread().length, nc = newCerts().length, certs = (data.certificates || []).length;
+    var chips = el('div', { class: 'rio-chips' }, [
+      el('button', { type: 'button', class: 'rio-chip' + (u ? ' hot' : ''), id: 'rioMsgBtn', 'aria-label': 'Messages from Dad' + (u ? ', ' + u + ' new' : ''),
+        onclick: function () { open('messages'); } }, ['✉️ Dad', u ? el('b', { class: 'rio-badge', id: 'rioBadge', text: String(u) }) : null]),
+      el('button', { type: 'button', class: 'rio-chip', id: 'rioTokBtn', 'aria-label': 'Tokens', onclick: function () { open('tokens'); } },
+        ['🪙 ', el('span', { id: 'rioTokens', text: String(data.tokens && data.tokens.balance || 0) })]),
+      el('button', { type: 'button', class: 'rio-chip', id: 'rioCertBtn', 'aria-label': 'My certificates' + (nc ? ', ' + nc + ' new' : ''), onclick: function () { open('certs'); } },
+        ['🏅 ', el('span', { text: String(certs) }), nc ? el('i', { class: 'rio-dot', title: 'New certificate!' }) : null]),
+      el('button', { type: 'button', class: 'rio-chip', id: 'rioScoreBtn', 'aria-label': 'My scores', onclick: function () { open('scores'); } }, ['⭐ Scores'])
+    ]);
+    stripEl.appendChild(chips);
+    if (u) {
+      stripEl.appendChild(el('button', { type: 'button', class: 'rio-news', id: 'rioNews', onclick: function () { open('messages'); } },
+        ['📬 ', el('b', { text: u === 1 ? 'New message from Dad' : u + ' new messages from Dad' }), ' — tap to read']));
+    }
+    stripEl.hidden = false;
+  }
+
+  function ensureOverlay() {
+    if (overlay) return;
+    overlay = el('div', { class: 'rio-overlay', id: 'rioOverlay', hidden: '' });
+    sheet = el('div', { class: 'rio-sheet', id: 'rioSheet', role: 'dialog', 'aria-modal': 'true' });
+    overlay.appendChild(sheet);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) close(); });
+  }
+  function frame(title, body, back) {
+    sheet.innerHTML = '';
+    sheet.appendChild(el('div', { class: 'rio-sheet-head' }, [
+      back ? el('button', { type: 'button', class: 'rio-back', text: '← Back', onclick: back }) : null,
+      el('h2', { text: title }),
+      el('button', { type: 'button', class: 'close-x', id: 'rioClose', 'aria-label': 'Close', text: '✕', onclick: close })
+    ]));
+    var b = el('div', { class: 'rio-sheet-body' }, body);
+    sheet.appendChild(b);
+    b.scrollTop = 0;
+  }
+  function close() { if (overlay) overlay.hidden = true; document.body.classList.remove('tool-open'); current = null; drawStrip(); }
+
+  function open(which) {
+    if (!data) return;
+    ensureOverlay();
+    current = which;
+    overlay.hidden = false;
+    document.body.classList.add('tool-open');
+    if (which === 'messages') showMessages();
+    else if (which === 'tokens') showTokens();
+    else if (which === 'certs') showShelf();
+    else showScores();
+  }
+
+  function showMessages() {
+    var msgs = data.messages || [];
+    var fresh = unread().map(function (m) { return m.id; });
+    var list = msgs.length ? msgs.map(function (m) {
+      var isNew = fresh.indexOf(m.id) !== -1;
+      return el('div', { class: 'rio-msg' + (isNew ? ' new' : '') }, [
+        el('div', { class: 'rio-msg-meta' }, [isNew ? el('b', { class: 'rio-badge new', text: 'NEW' }) : null, ' From ' + (m.from || 'Dad') + ' · ' + when(m.sentAt)]),
+        el('div', { class: 'rio-msg-text', text: m.text })
+      ]);
+    }) : [el('p', { class: 'muted', text: 'No messages yet.' })];
+    frame('✉️ Messages from Dad', list);
+    if (fresh.length) {
+      // Opening the inbox marks them read (only read flags; nothing else can be changed from this page).
+      msgs.forEach(function (m) { if (fresh.indexOf(m.id) !== -1) m.read = true; });
+      api('rioMarkRead', [fresh], function (res) {
+        if (!res || res.ok !== true) restore();
+      }, restore);
+    }
+    function restore() { (data.messages || []).forEach(function (m) { if (fresh.indexOf(m.id) !== -1) m.read = false; }); drawStrip(); }
+  }
+
+  function showTokens() {
+    var t = data.tokens || { balance: 0, recent: [] };
+    var rows = (t.recent || []).map(function (x) {
+      return el('li', null, [
+        el('b', { class: x.delta > 0 ? 'plus' : 'minus', text: (x.delta > 0 ? '+' : '') + x.delta }),
+        el('span', { class: 'why', text: x.reason || (x.delta > 0 ? 'Tokens from Dad' : 'Tokens used') }),
+        el('small', { text: when(x.at) })
+      ]);
+    });
+    frame('🪙 My tokens', [
+      el('div', { class: 'rio-bigcount' }, [el('div', { class: 'num', text: String(t.balance || 0) }), el('div', { class: 'muted', text: (t.balance === 1 ? 'token' : 'tokens') })]),
+      rows.length ? el('ul', { class: 'rio-ledger' }, rows) : el('p', { class: 'muted', text: 'No tokens yet. Keep going!' })
+    ]);
+  }
+
+  function showShelf() {
+    var certs = data.certificates || [], s = seen();
+    var items = certs.map(function (c) {
+      var isNew = s.indexOf(c.id) === -1;
+      var fig = el('button', { type: 'button', class: 'rio-cert-thumb', 'aria-label': 'Open certificate ' + c.title, onclick: function () { showCert(c); } }, [
+        isNew ? el('b', { class: 'rio-badge new', text: 'NEW' }) : null
+      ]);
+      fig.insertBefore(RioCert.svg(c), fig.firstChild);
+      fig.appendChild(el('span', { class: 'cap', text: c.title }));
+      return fig;
+    });
+    frame('🏅 My certificates', items.length ? [el('div', { class: 'rio-shelf' }, items)]
+      : [el('p', { class: 'muted', text: 'No certificates yet. They show up here when Dad gives you one!' })]);
+  }
+
+  function showCert(c) {
+    markSeen([c.id]);
+    var holder = el('div', { class: 'rio-cert-big', id: 'rioCertBig' });
+    holder.appendChild(RioCert.svg(c));
+    var out = el('div', { class: 'rio-saved' });
+    frame('🏅 ' + c.title, [
+      holder,
+      el('div', { class: 'rio-cert-actions' }, [
+        el('button', { type: 'button', class: 'btn secondary', text: '🖨️ Print', onclick: function () { printCert(c); } }),
+        el('button', { type: 'button', class: 'btn', id: 'rioSaveCert', text: '💾 Save picture', onclick: function () { savePicture(c, out); } })
+      ]),
+      out
+    ], (data.certificates || []).length > 1 ? showShelf : null);
+  }
+
+  function printCert(c) {
+    var p = document.getElementById('rioPrint');
+    if (!p) { p = el('div', { id: 'rioPrint' }); document.body.appendChild(p); }
+    p.innerHTML = '';
+    p.appendChild(RioCert.svg(c));
+    document.body.classList.add('print-cert');
+    var done = function () { document.body.classList.remove('print-cert'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(function () { try { window.print(); } catch (e) {} setTimeout(done, 1500); }, 50);
+  }
+
+  function savePicture(c, out) {
+    out.innerHTML = '';
+    out.appendChild(el('p', { class: 'muted', text: 'Making the picture…' }));
+    RioCert.toPng(c, 2, function (err, url) {
+      out.innerHTML = '';
+      if (err) { out.appendChild(el('p', { class: 'muted', text: '😕 ' + err.message })); return; }
+      var file = 'certificate-' + String(c.title || 'award').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+      out.appendChild(el('img', { src: url, alt: 'Certificate picture', class: 'rio-cert-png' }));
+      out.appendChild(el('p', { class: 'muted', text: 'On an iPad or iPhone: press and hold the picture, then "Save to Photos".' }));
+      var a = el('a', { href: url, download: file, class: 'btn good', text: '⬇️ Download ' + file });
+      out.appendChild(el('div', { class: 'rio-cert-actions' }, [a]));
+      try { a.click(); } catch (e) {}
+    });
+  }
+
+  function showScores() {
+    var sc = data.scores || [];
+    var label = { partial: 'only part done', not_submitted: 'not turned in' };
+    var rows = sc.map(function (g) {
+      var pct = Math.max(0, Math.min(100, Number(g.percent) || 0));
+      return el('li', null, [
+        el('div', { class: 'top' }, [el('b', { text: shortDate(g.date) }), el('span', { text: g.score + ' / ' + g.total + ' · ' + pct + '%' })]),
+        el('div', { class: 'track' }, [el('div', { class: 'fill' + (pct >= 80 ? ' good' : ''), style: 'width:' + pct + '%' })]),
+        el('small', { class: 'muted', text: (g.topic || '') + (label[g.status] ? ' · ' + label[g.status] : '') })
+      ]);
+    });
+    frame('⭐ My scores', rows.length ? [el('ul', { class: 'rio-scores' }, rows)] : [el('p', { class: 'muted', text: 'Scores show up here after a test is checked.' })]);
+  }
+
+  function load() {
+    lastLoad = Date.now();
+    api('rioData', [], function (res) {
+      if (!res || res.ok !== true || res.api !== 'rio') { data = null; drawStrip(); return; }
+      data = res;
+      drawStrip();
+    }, function () { if (!data) drawStrip(); });
+  }
+  function mount(container) {
+    if (container && !stripEl) container.appendChild(strip());
+    load();
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible' && Date.now() - lastLoad > 60000 && !current) load();
+    });
+  }
+  return { mount: mount, load: load, open: open, close: close, state: function () { return data; } };
+})();
+/* ==== RIO-INBOX END ==== */
+</script>
+<script>
 window.__rioStart = function () {
   'use strict';
   var app = document.getElementById('app');
@@ -1018,6 +1447,7 @@ window.__rioStart = function () {
   }
 
   function render() {
+    RioInbox.mount(app);   // header strip: messages from Dad, tokens, certificates (stays hidden if the backend doesn't have it)
     if (!test) {
       app.appendChild(el('header', { class: 'top' }, [el('h1', { text: 'Math practice' })]));
       app.appendChild(el('div', { class: 'card error' }, [
