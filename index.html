@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
+<title>Math practice</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f3f7ff; --card: #ffffff; --ink: #1d2433; --muted: #5b6475;
+    --accent: #3867ff; --accent-dark: #2447c7; --good: #1f9d55; --warn: #d97706; --line: #d6def0;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 20px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  body.tool-open { overflow: hidden; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 14px 200px; }
+  header.top { background: linear-gradient(135deg, #3867ff, #7b5cff); color: #fff; border-radius: 22px;
+    padding: 20px 20px 18px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(56,103,255,.25); }
+  header.top h1 { margin: 0 0 4px; font-size: 1.5em; line-height: 1.2; }
+  header.top .date { font-size: 1.05em; opacity: .95; }
+  header.top .instructions { margin-top: 10px; font-size: .95em; background: rgba(255,255,255,.15);
+    border-radius: 12px; padding: 10px 12px; }
+  .card { background: var(--card); border-radius: 20px; padding: 18px 18px 8px; margin: 0 0 16px;
+    box-shadow: 0 2px 8px rgba(29,36,51,.06); border: 1px solid var(--line); }
+  .stamp { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  .stamp label { font-weight: 600; font-size: .9em; color: var(--muted); display: block; margin-bottom: 4px; }
+  .qhead { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .qnum { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15em; }
+  .qtitle { font-weight: 800; font-size: 1.1em; line-height: 1.25; }
+  .qprompt { margin: 6px 0 10px; }
+  .part { border-top: 2px dashed var(--line); padding: 14px 0 12px; }
+  .part:first-of-type { border-top: none; }
+  .plabel { display: inline-block; min-width: 38px; padding: 2px 10px; margin-right: 6px; border-radius: 10px;
+    background: #e8eeff; color: var(--accent-dark); font-weight: 800; text-align: center; }
+  .pprompt { font-weight: 600; }
+  .field { margin-top: 10px; }
+  .field > label { display: block; font-weight: 600; color: var(--muted); font-size: .92em; margin-bottom: 4px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .suffix { color: var(--muted); white-space: nowrap; }
+  input[type=text], textarea { width: 100%; font: inherit; font-size: 1.05em; color: var(--ink); padding: 12px 14px;
+    border: 2px solid #b9c6e6; border-radius: 14px; background: #fbfcff; outline: none; }
+  input[type=text]:focus, textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(56,103,255,.15); }
+  textarea { min-height: 110px; resize: vertical; }
+  .filled input[type=text], .filled textarea { border-color: #8fd3ab; }
+  .choices { display: flex; gap: 10px; flex-wrap: wrap; }
+  .choices button { font: inherit; font-weight: 700; padding: 12px 20px; border-radius: 14px; border: 2px solid #b9c6e6;
+    background: #fff; color: var(--ink); cursor: pointer; min-width: 130px; }
+  .choices button[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .paper { background: #fff8e6; border: 2px solid #f6d58a; border-radius: 14px; padding: 12px 14px; margin-top: 10px; }
+  .paper .big { font-weight: 800; }
+  .paper-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .photo-btn { display: inline-block; margin-top: 10px; font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 12px;
+    background: #fff; border: 2px solid #f0c052; cursor: pointer; color: var(--ink); min-height: 48px; }
+  .paper-btns .photo-btn { margin-top: 0; }
+  .photo-btn.graph { border-color: var(--accent); color: var(--accent-dark); }
+  .photo-btn input { display: none; }
+  .thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .thumb { position: relative; }
+  .thumb img { width: 96px; height: 96px; object-fit: cover; border-radius: 10px; border: 2px solid #f0c052; }
+  .thumb button { position: absolute; top: -8px; right: -8px; width: 30px; height: 30px; border-radius: 50%; border: none;
+    background: #d33; color: #fff; font-weight: 800; cursor: pointer; }
+  .graph-att { margin-top: 10px; }
+  .graph-att:empty { display: none; }
+  .graph-att .att-head { font-weight: 800; color: #145c33; }
+  .graph-att img { display: block; width: 100%; max-width: 360px; border-radius: 12px; border: 3px solid #8fd3ab; background: #fff; margin: 6px 0; }
+  .graph-att .att-desc { white-space: pre-wrap; font-size: .8em; line-height: 1.4; background: #fff; border-radius: 10px;
+    padding: 8px 10px; margin: 6px 0; border: 1px solid #f0dca6; overflow-wrap: anywhere; }
+  table.vals { border-collapse: collapse; margin: 8px 0 12px; font-variant-numeric: tabular-nums; }
+  table.vals th, table.vals td { border: 2px solid var(--line); padding: 6px 16px; text-align: center; }
+  table.vals th { background: #eef2ff; }
+  .info { color: var(--muted); font-style: italic; margin-top: 6px; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.97); border-top: 1px solid var(--line);
+    padding: 8px 14px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 16px rgba(29,36,51,.08); z-index: 5; }
+  .bar-inner { max-width: 760px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .tools { display: flex; gap: 8px; width: 100%; }
+  .tool-btn { flex: 1 1 0; font: inherit; font-weight: 800; font-size: .92em; min-height: 46px; padding: 6px 10px; border-radius: 14px;
+    border: 2px solid #c5d3fb; background: #eef2ff; color: var(--accent-dark); cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+  .tool-btn:active { background: #dbe4ff; }
+  .progress { flex: 1; min-width: 0; }
+  .progress .txt { font-size: .85em; color: var(--muted); font-weight: 600; }
+  .progress .track { height: 12px; background: #e3e8f5; border-radius: 99px; overflow: hidden; margin-top: 4px; }
+  .progress .fill { height: 100%; width: 0; background: linear-gradient(90deg, #34c77b, #1f9d55); transition: width .3s; }
+  .btn { font: inherit; font-weight: 800; font-size: 1.05em; padding: 14px 26px; border-radius: 16px; border: none;
+    background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(56,103,255,.3); touch-action: manipulation; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .btn.secondary { background: #fff; color: var(--accent-dark); border: 2px solid var(--accent); box-shadow: none; }
+  .btn.good { background: var(--good); box-shadow: 0 4px 12px rgba(31,157,85,.3); }
+  .overlay { position: fixed; inset: 0; background: rgba(20,26,40,.55); display: none; align-items: center; justify-content: center;
+    padding: 18px; z-index: 30; }
+  .overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 24px; padding: 26px 22px; max-width: 460px; width: 100%; text-align: center; }
+  .modal h2 { margin: 0 0 8px; font-size: 1.6em; }
+  .modal .emoji { font-size: 3.2em; line-height: 1; margin-bottom: 8px; }
+  .modal .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .sent-banner { display: none; background: #e7f8ee; border: 2px solid #8fd3ab; color: #145c33; border-radius: 16px;
+    padding: 12px 14px; margin-bottom: 16px; font-weight: 700; }
+  .sent-banner.show { display: block; }
+  .error { background: #fff1f0; border: 2px solid #f5b5ae; color: #8a1c12; }
+  .other-days { font-size: .9em; color: var(--muted); }
+  .other-days select { font: inherit; font-size: 1em; padding: 6px 8px; border-radius: 10px; }
+  .muted { color: var(--muted); }
+  .flash { animation: flash 1.2s ease-out; }
+  @keyframes flash { 0%, 40% { box-shadow: 0 0 0 6px rgba(31,157,85,.45); border-color: var(--good); } 100% { box-shadow: none; } }
+
+  /* ---------- tool popups (graph + calculator) ---------- */
+  .tool-overlay { position: fixed; inset: 0; z-index: 20; background: rgba(20,26,40,.55); display: flex;
+    align-items: center; justify-content: center; }
+  .tool-overlay[hidden] { display: none; }
+  .toolbox { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+  .toolhead { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px;
+    border-bottom: 1px solid var(--line); background: #f7f9ff; }
+  .tabs { display: flex; gap: 6px; flex: 1; min-width: 0; }
+  .tab { flex: 1 1 0; position: relative; min-width: 0; }
+  .tab input { position: absolute; opacity: 0; pointer-events: none; }
+  .tab span { display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 4px 6px; border-radius: 14px;
+    border: 2px solid #b9c6e6; background: #fff; font-weight: 800; font-size: .88em; cursor: pointer; white-space: nowrap;
+    touch-action: manipulation; overflow: hidden; }
+  .tab input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab input:focus-visible + span { outline: 3px solid rgba(56,103,255,.45); outline-offset: 2px; }
+  .close-x { flex: 0 0 auto; min-width: 54px; min-height: 54px; padding: 0 14px; border-radius: 14px; border: none; background: #1d2433;
+    color: #fff; font: inherit; font-weight: 800; font-size: 1.05em; cursor: pointer; touch-action: manipulation; }
+  .close-x .wide-only { display: none; }
+  .toolbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; overscroll-behavior: contain; }
+  .toolfoot { flex: 0 0 auto; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #f7fff9; }
+  .toolfoot .btn { width: 100%; }
+  .toolfoot .muted { font-size: .8em; text-align: center; margin-top: 4px; }
+  .gtarget { background: #fff8e6; border: 2px solid #f6d58a; border-radius: 14px; padding: 8px 12px; margin-bottom: 10px; font-size: .9em; }
+  .glayout { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+  .canvas-wrap { position: relative; width: 100%; }
+  .canvas-wrap canvas { display: block; width: 100%; border-radius: 12px; border: 2px solid var(--line); touch-action: manipulation; cursor: crosshair; background: #fff; }
+  .gbelow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 40px; margin-top: 6px; }
+  .gbelow .hint { margin-top: 0; }
+  .coord { background: #1d2433; color: #fff; font-weight: 800; padding: 4px 14px; border-radius: 99px; font-size: 1em; }
+  .coord[hidden] { display: none; }
+  .hint { color: var(--muted); font-size: .8em; margin-top: 4px; }
+  .gsec { background: #f7f9ff; border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; margin-bottom: 12px; }
+  .gsec-title { display: block; font-weight: 800; margin-bottom: 6px; }
+  .axrow { display: grid; grid-template-columns: 20px auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center;
+    gap: 5px; margin: 6px 0; }
+  .axrow b { font-size: 1.1em; font-style: italic; }
+  .axrow span { color: var(--muted); font-size: .8em; }
+  .axrow input[type=text] { padding: 8px 4px; text-align: center; font-size: 18px; border-radius: 12px; min-width: 0; }
+  input[type=text].bad { border-color: #e5484d; background: #fff5f5; }
+  .gmsg { border-radius: 12px; padding: 8px 12px; margin: 8px 0; font-size: .88em; font-weight: 600; background: #e7f8ee; color: #145c33; }
+  .gmsg.bad { background: #fff1f0; color: #8a1c12; border: 2px solid #f5b5ae; }
+  .gmsg[hidden] { display: none; }
+  .gbtns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .chip-btn { font: inherit; font-size: .85em; font-weight: 700; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 2px solid #b9c6e6;
+    background: #fff; color: var(--ink); cursor: pointer; touch-action: manipulation; }
+  .keys { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .keys button { font: inherit; font-weight: 800; min-width: 44px; min-height: 44px; border-radius: 12px; border: 2px solid #c5d3fb;
+    background: #eef2ff; color: var(--accent-dark); cursor: pointer; touch-action: manipulation; }
+  #gLabel { margin-top: 2px; font-size: 1em; }
+  .add-btn { width: 100%; margin-top: 10px; }
+  .glist { list-style: none; margin: 10px 0 4px; padding: 0; }
+  .glist li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .glist li:first-child { border-top: none; }
+  .glist li.empty { color: var(--muted); font-size: .88em; }
+  .swatch { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 8px; }
+  .glist .txt { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
+  .glist .txt b { font-weight: 800; }
+  .glist .txt small { display: block; color: var(--muted); font-size: .8em; }
+  .glist .rm { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; border: 2px solid #f5c2bc; background: #fff1f0; color: #b42318;
+    font: inherit; font-weight: 800; cursor: pointer; touch-action: manipulation; }
+  .linkish { font: inherit; font-size: .85em; background: none; border: none; color: #b42318; text-decoration: underline; cursor: pointer; padding: 8px 0; }
+  .calc { max-width: 480px; margin: 0 auto; }
+  .cdisplay { background: #1d2433; color: #fff; border-radius: 18px; padding: 10px 16px 12px; text-align: right; min-height: 118px; }
+  .cexpr { font-size: 1.1em; opacity: .85; overflow-wrap: anywhere; min-height: 1.5em; }
+  .cres { font-size: 2.2em; font-weight: 800; overflow-wrap: anywhere; line-height: 1.2; }
+  .cres.preview { opacity: .55; font-size: 1.5em; }
+  .cres.err { color: #ffb4a8; font-size: 1em; font-weight: 700; padding-top: 6px; }
+  .cfrac { font-size: 1em; opacity: .85; min-height: 1.2em; }
+  .ckeys { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 8px; margin-top: 12px; }
+  .ckeys button { min-height: 56px; font: inherit; font-size: 1.25em; font-weight: 700; border-radius: 14px; border: 2px solid #d6def0;
+    background: #fff; color: var(--ink); cursor: pointer; padding: 0; touch-action: manipulation; }
+  .ckeys button:active, .ckeys button.hit { transform: scale(.96); filter: brightness(.93); }
+  .ckeys .d { background: #f3f6fd; }
+  .ckeys .op { background: #e8eeff; color: var(--accent-dark); border-color: #c5d3fb; font-size: 1.6em; }
+  .ckeys .fn { background: #fff1f0; color: #b42318; border-color: #f5c2bc; }
+  .ckeys .eq { background: var(--accent); color: #fff; border-color: var(--accent); grid-row: span 2; font-size: 1.6em; }
+  .ckeys .wide { grid-column: span 2; }
+  .ckeys .small { font-size: 1em; }
+  .cactions { display: flex; gap: 10px; margin-top: 12px; }
+  .cactions .btn { flex: 1 1 0; padding: 12px 10px; font-size: .95em; }
+  .cactions .btn:disabled { cursor: not-allowed; opacity: .45; }
+  @media (min-width: 640px) {
+    main { padding-bottom: 140px; }
+    .bar-inner { flex-wrap: nowrap; }
+    .tools { width: auto; flex: 0 0 auto; }
+    .tool-btn { flex: 0 0 auto; }
+  }
+  @media (min-width: 760px) {
+    .tool-overlay { padding: 20px; }
+    .toolbox { max-width: 1000px; height: auto; max-height: calc(100vh - 40px); border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+    .close-x .wide-only { display: inline; }
+    .toolbody { padding: 18px; }
+    .glayout { grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr); align-items: start; }
+    .tab span { font-size: .95em; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 19px; }
+    .stamp { grid-template-columns: 1fr; }
+    .btn { padding: 14px 18px; }
+  }
+  .loading { text-align: center; padding: 60px 10px; color: var(--muted); }
+  .loading .spin { width: 44px; height: 44px; margin: 0 auto 14px; border-radius: 50%; border: 5px solid var(--line);
+    border-top-color: var(--accent); animation: rspin 0.9s linear infinite; }
+  @keyframes rspin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-inner">
+    <div class="tools" role="group" aria-label="Math tools">
+      <button class="tool-btn" id="openGraphBtn" type="button">📈 Graph</button>
+      <button class="tool-btn" id="openCalcBtn" type="button">🧮 Calculator</button>
+    </div>
+    <div class="progress">
+      <div class="txt" id="progressTxt">0 answered</div>
+      <div class="track"><div class="fill" id="progressFill"></div></div>
+    </div>
+    <button class="btn" id="submitBtn" type="button">Submit ✈️</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<div class="tool-overlay" id="toolOverlay" hidden>
+  <div class="toolbox" role="dialog" aria-modal="true" aria-label="Math tools">
+    <div class="toolhead">
+      <div class="tabs" role="radiogroup" aria-label="Pick a tool">
+        <label class="tab"><input type="radio" name="tool" value="graph" id="tabGraph"><span>📈 Graph</span></label>
+        <label class="tab"><input type="radio" name="tool" value="calc" id="tabCalc"><span>🧮 Calculator</span></label>
+      </div>
+      <button type="button" class="close-x" id="toolClose" aria-label="Close">✕<span class="wide-only">&nbsp;Close</span></button>
+    </div>
+    <div class="toolbody" id="toolBody">
+      <section id="graphTool" hidden>
+        <div class="gtarget" id="gTarget" hidden></div>
+        <div class="glayout">
+          <div>
+            <div class="canvas-wrap" id="gWrap">
+              <canvas id="gCanvas" role="img" aria-label="Graph"></canvas>
+            </div>
+            <div class="gbelow"><span class="coord" id="gCoord" hidden></span><span class="hint" id="gTapHint">Tap the graph to see the coordinates of that spot.</span></div>
+          </div>
+          <div>
+            <div class="gsec">
+              <div class="gsec-title">Axes</div>
+              <div class="axrow"><b>x</b><span>from</span><input type="text" id="ax-xmin" aria-label="x min" autocomplete="off" spellcheck="false"><span>to</span><input type="text" id="ax-xmax" aria-label="x max" autocomplete="off" spellcheck="false"><span>by</span><input type="text" id="ax-xstep" aria-label="x interval" autocomplete="off" spellcheck="false"></div>
+              <div class="axrow"><b>y</b><span>from</span><input type="text" id="ax-ymin" aria-label="y min" autocomplete="off" spellcheck="false"><span>to</span><input type="text" id="ax-ymax" aria-label="y max" autocomplete="off" spellcheck="false"><span>by</span><input type="text" id="ax-ystep" aria-label="y interval" autocomplete="off" spellcheck="false"></div>
+              <div class="gmsg bad" id="gAxisMsg" role="alert" hidden></div>
+              <div class="gbtns">
+                <button type="button" class="chip-btn" id="gSuggest" hidden>Use the suggested bounds</button>
+                <button type="button" class="chip-btn" id="gResetAxes">Reset to −10 … 10</button>
+              </div>
+            </div>
+            <div class="gsec">
+              <label class="gsec-title" for="gInput">Add a line or points</label>
+              <input type="text" id="gInput" placeholder="y = 2x + 3  or  (3, 5)" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+              <div class="keys" id="gKeys"></div>
+              <input type="text" id="gLabel" placeholder="Label (optional), like TechBus" maxlength="40" autocomplete="off" aria-label="Label (optional)">
+              <button type="button" class="btn add-btn" id="gAdd">＋ Add to graph</button>
+              <div class="gmsg" id="gAddMsg" role="status" hidden></div>
+              <ul class="glist" id="gList"></ul>
+              <button type="button" class="linkish" id="gClear">Clear all lines and points</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="calcTool" hidden>
+        <div class="calc">
+          <div class="cdisplay" aria-live="polite">
+            <div class="cexpr" id="cExpr"></div>
+            <div class="cres" id="cRes">0</div>
+            <div class="cfrac" id="cFrac"></div>
+          </div>
+          <div class="ckeys" id="cKeys"></div>
+          <div class="cactions">
+            <button type="button" class="btn secondary" id="cCopy">📋 Copy</button>
+            <button type="button" class="btn" id="cInsert">⤵ Put in my answer</button>
+          </div>
+          <div class="hint" id="cHint"></div>
+        </div>
+      </section>
+    </div>
+    <div class="toolfoot" id="gFoot" hidden>
+      <button type="button" class="btn good" id="gUse">✅ Use this graph in my answer</button>
+      <div class="muted" id="gFootNote"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var RIO_API_URL = "https://script.google.com/macros/s/AKfycbwsufZ6Nh4q3j03LZHJXVIo0did9KHo8RUI-QhP5EVnQGPVDXji1ZW3xWzcHAA7B1WZ/exec";
+  var DATA = null;   // filled in by the loader at the bottom of the page (GET <exec>?format=json)
+  /* No cookies ever go to Google: credentials 'omit', no referrer. GET for the test; POST with a text/plain
+     body for Submit (a "simple" CORS request, so no preflight). Apps Script answers with a 302 to
+     script.googleusercontent.com, which fetch follows; both send Access-Control-Allow-Origin: *. */
+  function rioFetchJSON(url, opts, timeoutMs) {
+    opts = opts || {};
+    opts.credentials = 'omit'; opts.cache = 'no-store'; opts.redirect = 'follow'; opts.referrerPolicy = 'no-referrer';
+    opts.mode = 'cors';
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = null;
+    if (ctl) { opts.signal = ctl.signal; timer = setTimeout(function () { ctl.abort(); }, timeoutMs || 30000); }
+    return fetch(url, opts).then(function (r) {
+      return r.text().then(function (t) {
+        var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The math server sent something unexpected (HTTP ' + r.status + ').'); }
+        return j;
+      });
+    }, function (e) {
+      throw new Error(e && e.name === 'AbortError' ? 'The math server took too long to answer.' : 'Couldn\'t reach the math server.');
+    }).finally(function () { if (timer) clearTimeout(timer); });
+  }
+  window.google = { script: {} };
+  Object.defineProperty(window.google.script, 'run', { get: function () {
+    var ok = function () {}, fail = function () {};
+    var r = {
+      withSuccessHandler: function (f) { ok = f; return r; },
+      withFailureHandler: function (f) { fail = f; return r; },
+      submitAnswers: function (payload) {
+        rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload) }, 180000)
+          .then(function (res) {
+            if (!res || res.ok !== true) throw new Error((res && res.error) || 'The math server said no.');
+            ok(res);
+          })
+          .catch(function (e) { fail(e); });
+      }
+    };
+    return r;
+  } });
+</script>
+<script>
+/* ==== RIO-MATH-CORE START (pure functions, no DOM; unit-tested by dev/unit-test.js) ==== */
+var RioMath = (function () {
+  'use strict';
+  function MathError(msg) { var e = new Error(msg); e.friendly = true; return e; }
+
+  /** Turns the fancy characters phones and the calculator use into plain ones. */
+  function normalize(s) {
+    return String(s == null ? '' : s)
+      .replace(/[\u2212\u2012\u2013\u2014\uFE63\uFF0D]/g, '-')
+      .replace(/[\u00D7\u22C5\u00B7\u2219\u2217]/g, '*')
+      .replace(/[\u00F7\u2215\u2044]/g, '/')
+      .replace(/[\uFF08\[{]/g, '(').replace(/[\uFF09\]}]/g, ')')
+      .replace(/\uFF1D/g, '=').replace(/\uFF0C/g, ',')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function tokenize(src) {
+    var s = normalize(src), toks = [], i = 0, m;
+    while (i < s.length) {
+      var ch = s.charAt(i);
+      if (ch === ' ') { i++; continue; }
+      if (/[0-9.]/.test(ch)) {
+        m = /^(\d+\.?\d*|\.\d+)/.exec(s.slice(i));
+        if (!m) throw MathError('A "." needs a number next to it.');
+        if (s.charAt(i + m[0].length) === '.') throw MathError('One number has two decimal points.');
+        toks.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue;
+      }
+      if (ch === '\u03C0') { toks.push({ t: 'num', v: Math.PI, pi: true }); i++; continue; }
+      if (/[a-zA-Z]/.test(ch)) {
+        var rest = s.slice(i).toLowerCase();
+        if (rest.slice(0, 4) === 'sqrt') { toks.push({ t: 'sqrt' }); i += 4; continue; }
+        if (rest.slice(0, 2) === 'pi') { toks.push({ t: 'num', v: Math.PI, pi: true }); i += 2; continue; }
+        toks.push({ t: 'var', n: ch.toLowerCase() }); i++; continue;
+      }
+      if (ch === '\u221A') { toks.push({ t: 'sqrt' }); i++; continue; }
+      if (ch === '\u00B2' || ch === '\u00B3') { toks.push({ t: 'sq', p: ch === '\u00B2' ? 2 : 3 }); i++; continue; }
+      if ('+-*/^()'.indexOf(ch) >= 0) { toks.push({ t: 'op', v: ch }); i++; continue; }
+      throw MathError('I don\'t understand "' + ch + '".');
+    }
+    return toks;
+  }
+
+  /**
+   * Safe recursive-descent parser (no eval, no Function constructor).
+   * Precedence: + -  <  * / and implicit multiplication (left to right, so 1/2x = (1/2)x)  <  unary -  <  ^ (right assoc)  <  ² ³
+   * opts.autoClose: missing ")" at the very end are OK (calculator style).
+   */
+  function parse(src, opts) {
+    opts = opts || {};
+    var toks = tokenize(src), pos = 0;
+    if (!toks.length) throw MathError('Type something first.');
+    function peek() { return toks[pos]; }
+    function isOp(t, v) { return !!t && t.t === 'op' && t.v === v; }
+    function startsPrimary(t) { return !!t && (t.t === 'num' || t.t === 'var' || t.t === 'sqrt' || isOp(t, '(')); }
+    function parseExpr() {
+      var node = parseTerm();
+      while (isOp(peek(), '+') || isOp(peek(), '-')) {
+        var op = toks[pos++].v;
+        node = { t: op === '+' ? 'add' : 'sub', a: node, b: parseTerm() };
+      }
+      return node;
+    }
+    function parseTerm() {
+      var node = parseUnary();
+      for (;;) {
+        var t = peek();
+        if (isOp(t, '*') || isOp(t, '/')) { pos++; node = { t: t.v === '*' ? 'mul' : 'div', a: node, b: parseUnary() }; }
+        else if (startsPrimary(t)) node = { t: 'mul', a: node, b: parsePower(), implicit: true };
+        else return node;
+      }
+    }
+    function parseUnary() {
+      var t = peek();
+      if (isOp(t, '-')) { pos++; return { t: 'neg', a: parseUnary() }; }
+      if (isOp(t, '+')) { pos++; return parseUnary(); }
+      return parsePower();
+    }
+    function parsePower() {
+      var base = parsePostfix();
+      if (isOp(peek(), '^')) { pos++; return { t: 'pow', a: base, b: parseUnary() }; }
+      return base;
+    }
+    function parsePostfix() {
+      var node = parsePrimary();
+      while (peek() && peek().t === 'sq') node = { t: 'pow', a: node, b: { t: 'num', v: toks[pos++].p } };
+      return node;
+    }
+    function parsePrimary() {
+      var t = toks[pos];
+      if (!t) throw MathError('Something is missing at the end.');
+      if (t.t === 'num') { pos++; return { t: 'num', v: t.v }; }
+      if (t.t === 'var') { pos++; return { t: 'var', n: t.n }; }
+      if (t.t === 'sqrt') { pos++; return { t: 'sqrt', a: isOp(peek(), '-') ? parseUnary() : parsePower() }; }
+      if (isOp(t, '(')) {
+        pos++;
+        if (isOp(peek(), ')')) throw MathError('There is nothing inside the ( ).');
+        var inner = parseExpr();
+        if (isOp(peek(), ')')) pos++;
+        else if (!peek() && opts.autoClose) { /* fine: closed automatically */ }
+        else if (!peek()) throw MathError('A "(" is missing its ")".');
+        else throw MathError('Check your parentheses.');
+        return inner;
+      }
+      if (isOp(t, ')')) throw MathError('There is an extra ")" or something missing before it.');
+      if (t.t === 'sq') throw MathError('Put a number before the \u00B2.');
+      throw MathError('Something is missing before "' + t.v + '".');
+    }
+    var ast = parseExpr();
+    if (pos < toks.length) {
+      if (isOp(toks[pos], ')')) throw MathError('There is an extra ")".');
+      throw MathError('Check that part again.');
+    }
+    return ast;
+  }
+
+  function collectVars(node, out) {
+    out = out || [];
+    if (!node) return out;
+    if (node.t === 'var') { if (out.indexOf(node.n) < 0) out.push(node.n); return out; }
+    collectVars(node.a, out); collectVars(node.b, out);
+    return out;
+  }
+  function renameVars(node, map) {
+    if (!node) return node;
+    if (node.t === 'var') return { t: 'var', n: map[node.n] || node.n };
+    var c = {}; for (var k in node) c[k] = node[k];
+    if (node.a) c.a = renameVars(node.a, map);
+    if (node.b) c.b = renameVars(node.b, map);
+    return c;
+  }
+
+  function evaluate(node, env) {
+    var a, b, r;
+    switch (node.t) {
+      case 'num': return node.v;
+      case 'var':
+        if (env && Object.prototype.hasOwnProperty.call(env, node.n)) return env[node.n];
+        throw MathError(env ? 'I don\'t know what "' + node.n + '" is here.' : 'The calculator only works with numbers (no letters).');
+      case 'neg': return -evaluate(node.a, env);
+      case 'add': case 'sub':
+        a = evaluate(node.a, env); b = evaluate(node.b, env);
+        r = node.t === 'add' ? a + b : a - b;
+        // Snap tiny leftovers from cancellation (0.1 + 0.2 - 0.3) to exactly 0.
+        if (r !== 0 && Math.abs(r) < 1e-12 * Math.max(Math.abs(a), Math.abs(b))) r = 0;
+        return r;
+      case 'mul': return evaluate(node.a, env) * evaluate(node.b, env);
+      case 'div':
+        a = evaluate(node.a, env); b = evaluate(node.b, env);
+        if (b === 0) throw MathError('You can\'t divide by 0.');
+        return a / b;
+      case 'pow':
+        a = evaluate(node.a, env); b = evaluate(node.b, env);
+        if (a === 0 && b < 0) throw MathError('You can\'t divide by 0.');
+        r = Math.pow(a, b);
+        if (isNaN(r)) throw MathError('That power doesn\'t have a real-number answer.');
+        return r;
+      case 'sqrt':
+        a = evaluate(node.a, env);
+        if (a < 0) throw MathError('\u221A of a negative number isn\'t a real number.');
+        return Math.sqrt(a);
+    }
+    throw MathError('Something went wrong.');
+  }
+
+  /** About 10 significant digits, no float junk, plain ASCII ("-" minus). */
+  function formatNumber(v, sig) {
+    if (typeof v !== 'number' || !isFinite(v)) throw MathError('That number is too big.');
+    var n = parseFloat(v.toPrecision(sig || 10));
+    if (n === 0) return '0';
+    var s = String(n);
+    var m = /^(-?[\d.]+)e([+-])(\d+)$/.exec(s);
+    if (m) s = m[1] + '\u00D710^' + (m[2] === '-' ? '-' : '') + m[3];
+    return s;
+  }
+
+  /** Exact-looking fraction for v (e.g. 0.75 -> "3/4"), or null. */
+  function toFraction(v, maxDen) {
+    maxDen = maxDen || 1000;
+    if (!isFinite(v) || Math.abs(v) > 1e9) return null;
+    var sign = v < 0 ? -1 : 1, x = Math.abs(v);
+    if (Math.abs(x - Math.round(x)) < 1e-9) return null;
+    var h1 = 1, h0 = 0, k1 = 0, k0 = 1, b = x;
+    for (var i = 0; i < 30; i++) {
+      var ai = Math.floor(b);
+      var h2 = ai * h1 + h0, k2 = ai * k1 + k0;
+      if (k2 > maxDen) break;
+      h0 = h1; h1 = h2; k0 = k1; k1 = k2;
+      if (Math.abs(x - h1 / k1) < 1e-9 * Math.max(1, x)) return (sign < 0 ? '-' : '') + h1 + '/' + k1;
+      var frac = b - ai;
+      if (frac < 1e-12) break;
+      b = 1 / frac;
+    }
+    return null;
+  }
+
+  /** Calculator entry point. Returns { value, text, fraction }. Throws friendly errors. */
+  function calc(src) {
+    var ast = parse(src, { autoClose: true });
+    var v = evaluate(ast, null);
+    if (!isFinite(v)) throw MathError('That number is too big.');
+    var text = formatNumber(v);
+    var fraction = /[\/\u00F7\u2215\u2044]/.test(String(src)) ? toFraction(v) : null;
+    return { value: v, text: text, fraction: fraction };
+  }
+
+  /** A single number typed in a box: "-10", "1/2", "2.5", "−3". */
+  function evalNumber(src, what) {
+    var s = normalize(src);
+    if (!s) throw MathError((what || 'That') + ' is empty.');
+    var v;
+    try { v = evaluate(parse(s), null); } catch (e) { throw MathError((what || 'That') + ' needs to be a number.'); }
+    if (!isFinite(v)) throw MathError((what || 'That') + ' is too big.');
+    return v;
+  }
+
+  /* ---------- linear analysis: returns { k, c: {var: coef} } or null if not linear ---------- */
+  function isConst(l) { return l && Object.keys(l.c).length === 0; }
+  function scale(l, s) { if (!l) return null; var c = {}; for (var k in l.c) c[k] = l.c[k] * s; return { k: l.k * s, c: c }; }
+  function combine(a, b, sgn) {
+    if (!a || !b) return null;
+    var c = {}, k;
+    for (k in a.c) c[k] = a.c[k];
+    for (k in b.c) c[k] = (c[k] || 0) + sgn * b.c[k];
+    for (k in c) if (Math.abs(c[k]) < 1e-12) delete c[k];
+    return { k: a.k + sgn * b.k, c: c };
+  }
+  function linearize(node) {
+    var a, b;
+    switch (node.t) {
+      case 'num': return { k: node.v, c: {} };
+      case 'var': var c = {}; c[node.n] = 1; return { k: 0, c: c };
+      case 'neg': return scale(linearize(node.a), -1);
+      case 'add': return combine(linearize(node.a), linearize(node.b), 1);
+      case 'sub': return combine(linearize(node.a), linearize(node.b), -1);
+      case 'mul':
+        a = linearize(node.a); b = linearize(node.b);
+        if (!a || !b) return null;
+        if (isConst(a)) return scale(b, a.k);
+        if (isConst(b)) return scale(a, b.k);
+        return null;
+      case 'div':
+        a = linearize(node.a); b = linearize(node.b);
+        if (!a || !b || !isConst(b)) return null;
+        if (b.k === 0) throw MathError('You can\'t divide by 0.');
+        return scale(a, 1 / b.k);
+      case 'pow':
+        a = linearize(node.a); b = linearize(node.b);
+        if (!a || !b || !isConst(b)) return null;
+        if (isConst(a)) return { k: evaluate({ t: 'pow', a: { t: 'num', v: a.k }, b: { t: 'num', v: b.k } }, null), c: {} };
+        if (b.k === 1) return a;
+        if (b.k === 0) return { k: 1, c: {} };
+        return null;
+      case 'sqrt':
+        a = linearize(node.a);
+        if (!a || !isConst(a)) return null;
+        return { k: evaluate({ t: 'sqrt', a: { t: 'num', v: a.k } }, null), c: {} };
+    }
+    return null;
+  }
+  function clean(v) { var n = parseFloat(v.toPrecision(12)); return Math.abs(n) < 1e-12 ? 0 : n; }
+
+  /** Points: "(3, 5)", "(0,0), (3,21)", "A(1, 2) B(3, 4)". */
+  function parsePoints(s) {
+    var re = /\s*([A-Za-z]'?)?\s*\(([^()]*)\)\s*[,;]?/g, pts = [], m, last = 0;
+    while ((m = re.exec(s)) !== null) {
+      if (m.index !== last) break;
+      var parts = m[2].split(',');
+      if (parts.length !== 2) throw MathError('A point needs two numbers, like (3, 5).');
+      pts.push({ x: evalNumber(parts[0], 'The x of a point'), y: evalNumber(parts[1], 'The y of a point'), name: m[1] ? m[1].toUpperCase() : '' });
+      last = re.lastIndex;
+    }
+    if (!pts.length || last !== s.length) throw MathError('Write points like (3, 5) or (0, 0), (3, 21).');
+    if (pts.length > 60) throw MathError('That\'s a lot of points! Use 60 or fewer.');
+    return {
+      kind: 'points', points: pts,
+      text: pts.map(function (p) { return p.name + '(' + formatNumber(p.x) + ', ' + formatNumber(p.y) + ')'; }).join(', ')
+    };
+  }
+
+  function prettyEq(s) {
+    return s.replace(/\s*=\s*/g, ' = ').replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * Parses one thing to graph.
+   *  { kind: 'line', a, b, c, text }   meaning a*x + b*y = c   (b = 0: vertical line)
+   *  { kind: 'curve', ast, text }      meaning y = f(x) (not straight)
+   *  { kind: 'points', points: [{x,y,name}], text }
+   * Throws friendly errors.
+   */
+  function parseGraphInput(raw) {
+    var s = normalize(raw);
+    if (!s) throw MathError('Type an equation like y = 2x + 3, or a point like (3, 5).');
+    if (s.indexOf('=') < 0 && s.indexOf(',') >= 0 && /^([A-Za-z]'?)?\s*\(/.test(s)) return parsePoints(s);
+    if (/[<>\u2264\u2265]/.test(s)) throw MathError('The graph tool draws equations with "=" (not < or >).');
+    s = s.replace(/^[a-z]\s*\(\s*x\s*\)\s*=/i, 'y =');
+    var sides = s.split('=');
+    if (sides.length > 2) throw MathError('Use only one "=" sign.');
+    var noEq = sides.length === 1;
+    if (noEq) sides = ['y', sides[0]];
+    if (!sides[0].trim() || !sides[1].trim()) throw MathError('Something is missing on one side of the "=".');
+    var L = parse(sides[0]), R = parse(sides[1]);
+    var text = noEq ? 'y = ' + prettyEq(sides[1]) : prettyEq(s);
+    var vars = collectVars(R, collectVars(L));
+    var others = vars.filter(function (v) { return v !== 'x' && v !== 'y'; });
+    var note = '';
+    if (others.length) {
+      if (others.length !== vars.length || others.length > 2) {
+        throw MathError('Use x and y in your equation' + (others.length ? ' (I don\'t know what ' + others.join(', ') + ' means here).' : '.'));
+      }
+      var dep = null, indep = null;
+      if (L.t === 'var' && collectVars(R).indexOf(L.n) < 0) dep = L.n;
+      else if (R.t === 'var' && collectVars(L).indexOf(R.n) < 0) dep = R.n;
+      if (dep) indep = others.filter(function (v) { return v !== dep; })[0] || null;
+      else { indep = others[0]; dep = others[1] || null; }
+      var map = {};
+      if (indep) map[indep] = 'x';
+      if (dep) map[dep] = 'y';
+      L = renameVars(L, map); R = renameVars(R, map);
+      note = (indep ? indep + ' goes across (x)' : '') + (indep && dep ? ', ' : '') + (dep ? dep + ' goes up (y)' : '');
+    }
+    var lin = linearize({ t: 'sub', a: L, b: R });
+    if (lin) {
+      var a = clean(lin.c.x || 0), b = clean(lin.c.y || 0), c = clean(-lin.k);
+      if (a === 0 && b === 0) {
+        throw MathError(c === 0 ? 'That\'s true for every point, so there\'s no line to draw.' : 'That equation is never true, so there\'s nothing to draw.');
+      }
+      return { kind: 'line', a: a, b: b, c: c, text: text, note: note };
+    }
+    if (L.t === 'var' && L.n === 'y' && collectVars(R).indexOf('y') < 0) return { kind: 'curve', ast: R, text: text, note: note };
+    if (R.t === 'var' && R.n === 'y' && collectVars(L).indexOf('y') < 0) return { kind: 'curve', ast: L, text: text, note: note };
+    throw MathError('I can draw straight lines, and curves written as y = \u2026 (like y = x\u00B2).');
+  }
+
+  /** y value of a parsed line/curve at x (NaN if none). */
+  function yAt(item, x) {
+    if (item.kind === 'line') return item.b === 0 ? NaN : (item.c - item.a * x) / item.b;
+    if (item.kind === 'curve') { try { return evaluate(item.ast, { x: x }); } catch (e) { return NaN; } }
+    return NaN;
+  }
+
+  /** The visible piece of a*x + b*y = c inside the box, as [[x1,y1],[x2,y2]] or null. */
+  function clipLine(a, b, c, box) {
+    var pts = [], eps = 1e-9 * Math.max(box.xmax - box.xmin, box.ymax - box.ymin);
+    function add(x, y) {
+      if (x < box.xmin - eps || x > box.xmax + eps || y < box.ymin - eps || y > box.ymax + eps) return;
+      for (var i = 0; i < pts.length; i++) if (Math.abs(pts[i][0] - x) <= eps && Math.abs(pts[i][1] - y) <= eps) return;
+      pts.push([x, y]);
+    }
+    if (b !== 0) { add(box.xmin, (c - a * box.xmin) / b); add(box.xmax, (c - a * box.xmax) / b); }
+    if (a !== 0) { add((c - b * box.ymin) / a, box.ymin); add((c - b * box.ymax) / a, box.ymax); }
+    if (pts.length < 2) return null;
+    pts.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+    return [pts[0], pts[pts.length - 1]];
+  }
+
+  /** Samples y = f(x) across the box; returns arrays of [x,y] runs (breaks at gaps/asymptotes). */
+  function sampleCurve(item, box, n) {
+    n = n || 400;
+    var runs = [], run = [], span = box.ymax - box.ymin, prev = null;
+    for (var i = 0; i <= n; i++) {
+      var x = box.xmin + (box.xmax - box.xmin) * i / n, y = yAt(item, x);
+      if (!isFinite(y)) { if (run.length > 1) runs.push(run); run = []; prev = null; continue; }
+      var yc = Math.max(box.ymin - 5 * span, Math.min(box.ymax + 5 * span, y));
+      if (prev !== null && Math.abs(yc - prev) > 3 * span &&
+          ((prev > box.ymax && yc < box.ymin) || (prev < box.ymin && yc > box.ymax))) {
+        if (run.length > 1) runs.push(run); run = [];
+      }
+      run.push([x, yc]); prev = yc;
+    }
+    if (run.length > 1) runs.push(run);
+    return runs;
+  }
+
+  /** Grid values k*step inside [min, max] (anchored at 0 so the axes sit on grid lines). */
+  function ticks(min, max, step) {
+    var out = [], k0 = Math.ceil(min / step - 1e-9), k1 = Math.floor(max / step + 1e-9);
+    for (var k = k0; k <= k1 && out.length < 1000; k++) out.push({ k: k, v: clean(k * step) });
+    return out;
+  }
+
+  /** Label every n-th grid line so labels are at least `needPx` apart (n from 1, 2, 5, 10, 20, 50...). */
+  function labelEvery(pxPerStep, needPx) {
+    var steps = [1, 2, 5];
+    for (var mag = 1; mag < 1e6; mag *= 10) {
+      for (var i = 0; i < steps.length; i++) if (steps[i] * mag * pxPerStep >= needPx) return steps[i] * mag;
+    }
+    return 1e6;
+  }
+
+  function niceStep(raw) {
+    if (!(raw > 0)) return 1;
+    var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / mag;
+    return clean((f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag);
+  }
+
+  var MAX_LINES = 100;
+  /**
+   * texts = { xmin, xmax, xstep, ymin, ymax, ystep } (strings or numbers).
+   * Returns { ok, axes, errors: [..], bad: {fieldName: true} }.
+   */
+  function validateAxes(texts) {
+    var axes = {}, errors = [], bad = {};
+    var names = { xmin: 'x min', xmax: 'x max', xstep: 'The x interval', ymin: 'y min', ymax: 'y max', ystep: 'The y interval' };
+    Object.keys(names).forEach(function (k) {
+      try {
+        var v = evalNumber(texts[k], names[k]);
+        if (Math.abs(v) > 1e9) throw MathError(names[k] + ' is too big.');
+        axes[k] = v;
+      } catch (e) { errors.push(e.message); bad[k] = true; }
+    });
+    ['x', 'y'].forEach(function (ax) {
+      var mn = axes[ax + 'min'], mx = axes[ax + 'max'], st = axes[ax + 'step'];
+      if (mn != null && mx != null && !(mn < mx)) {
+        errors.push(ax + ' min has to be smaller than ' + ax + ' max.'); bad[ax + 'min'] = bad[ax + 'max'] = true;
+      }
+      if (st != null && !(st > 0)) { errors.push('The ' + ax + ' interval has to be bigger than 0.'); bad[ax + 'step'] = true; }
+      if (mn != null && mx != null && st != null && mn < mx && st > 0) {
+        var n = (mx - mn) / st;
+        if (n > MAX_LINES + 1e-9) {
+          errors.push('That makes about ' + Math.round(n) + ' grid lines on the ' + ax + ' axis \u2014 too many! Make the ' + ax +
+            ' interval bigger (try ' + formatNumber(niceStep((mx - mn) / 20)) + ') or the range smaller.');
+          bad[ax + 'step'] = true;
+        }
+      }
+    });
+    return { ok: errors.length === 0, axes: errors.length ? null : axes, errors: errors, bad: bad };
+  }
+
+  /** Reads "Suggested bounds: students 0 to 20 (interval 1); cost $0 to $800 (interval 50)" style hints from a prompt. */
+  function suggestedAxes(prompt) {
+    var s = normalize(prompt || ''), re = /(-?\$?-?\d+(?:\.\d+)?)\s*(?:to|through)\s*\$?(-?\d+(?:\.\d+)?)\s*(?:\(\s*(?:interval|by|step)\s*\$?(\d+(?:\.\d+)?)\s*\)|(?:by|every)\s+\$?(\d+(?:\.\d+)?))/gi;
+    var found = [], m;
+    while ((m = re.exec(s)) !== null && found.length < 2) {
+      found.push([parseFloat(m[1].replace('$', '')), parseFloat(m[2]), parseFloat(m[3] || m[4])]);
+    }
+    if (found.length < 2) return null;
+    var r = { xmin: found[0][0], xmax: found[0][1], xstep: found[0][2], ymin: found[1][0], ymax: found[1][1], ystep: found[1][2] };
+    return validateAxes(r).ok ? r : null;
+  }
+
+  var COLORS = [
+    { name: 'blue', hex: '#2563eb' }, { name: 'red', hex: '#dc2626' }, { name: 'green', hex: '#16a34a' },
+    { name: 'purple', hex: '#9333ea' }, { name: 'orange', hex: '#ea580c' }, { name: 'teal', hex: '#0d9488' },
+    { name: 'pink', hex: '#db2777' }, { name: 'brown', hex: '#92400e' }
+  ];
+  function colorName(hex) {
+    for (var i = 0; i < COLORS.length; i++) if (COLORS[i].hex === hex) return COLORS[i].name;
+    return hex;
+  }
+  function nextColor(items) {
+    var used = {};
+    (items || []).forEach(function (it) { used[it.color] = (used[it.color] || 0) + 1; });
+    var best = COLORS[0].hex, bestN = Infinity;
+    COLORS.forEach(function (c) { var n = used[c.hex] || 0; if (n < bestN) { bestN = n; best = c.hex; } });
+    return best;
+  }
+
+  /** Plain-text description of a graph for the grader. spec = { axes, items: [{input, label, color}] } */
+  function describeGraph(spec) {
+    var a = spec.axes, f = formatNumber;
+    var lines = [
+      '[Graph made with the graph tool \u2014 picture attached]',
+      'x axis: ' + f(a.xmin) + ' to ' + f(a.xmax) + ', interval ' + f(a.xstep),
+      'y axis: ' + f(a.ymin) + ' to ' + f(a.ymax) + ', interval ' + f(a.ystep)
+    ];
+    (spec.items || []).forEach(function (it, i) {
+      var p; try { p = parseGraphInput(it.input); } catch (e) { p = { kind: '?', text: it.input }; }
+      var what = p.kind === 'points' ? (p.points.length === 1 ? 'point ' : 'points ') + p.text : p.text;
+      lines.push((i + 1) + '. ' + what + (it.label ? ' \u2014 label "' + it.label + '"' : '') + ' (' + colorName(it.color) + ')');
+    });
+    if (!(spec.items || []).length) lines.push('(nothing graphed yet)');
+    return lines.join('\n');
+  }
+
+  return {
+    normalize: normalize, tokenize: tokenize, parse: parse, evaluate: evaluate, calc: calc, evalNumber: evalNumber,
+    formatNumber: formatNumber, toFraction: toFraction, linearize: linearize, parseGraphInput: parseGraphInput,
+    parsePoints: parsePoints, yAt: yAt, clipLine: clipLine, sampleCurve: sampleCurve, ticks: ticks, labelEvery: labelEvery,
+    niceStep: niceStep, validateAxes: validateAxes, suggestedAxes: suggestedAxes, describeGraph: describeGraph,
+    COLORS: COLORS, colorName: colorName, nextColor: nextColor, MAX_LINES: MAX_LINES
+  };
+})();
+/* ==== RIO-MATH-CORE END ==== */
+</script>
+<script>
+window.__rioStart = function () {
+  'use strict';
+  var app = document.getElementById('app');
+  var test = DATA.test;
+  var answers = {};   // fieldId -> string
+  var photos = {};    // partId -> [dataUrl]
+  var graphs = {};    // partId -> { axes, items: [{input, label, color}], savedAt }  (graph-tool graphs put in an answer)
+  var startedAt = new Date().toISOString();
+  var storeKey = test ? ('rio-math-draft-' + test.date) : null;
+  var M = RioMath;
+  var MAX_PICTURES = 8;   // Code.gs keeps at most CONFIG.MAX_PHOTOS = 8 pictures per submission
+  var partById = {};      // partId -> { part, q }
+  var fieldInfo = {};     // fieldId -> "1b · TechBus:"
+  var paperRefresh = {};  // partId -> function that redraws the attached-graph preview
+
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'class') n.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  // Must mirror fieldsForPart_() in Code.gs
+  function fieldsForPart(p) {
+    if (p.type === 'info') return [];
+    if (p.type === 'paper') return [{ id: p.id + '-notes', label: 'Notes (optional)', type: 'paper' }];
+    if (p.fields && p.fields.length) return p.fields;
+    return [{ id: p.id, label: '', type: p.type || 'long' }];
+  }
+  function allFields() {
+    var out = [];
+    (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) {
+      fieldsForPart(p).forEach(function (f) { out.push(f); });
+    }); });
+    return out;
+  }
+  function prettyDate(iso) {
+    var p = iso.split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12));
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  function saveDraft() {
+    if (!storeKey) return;
+    localStorage.setItem(storeKey, JSON.stringify({ answers: answers, photos: photos, graphs: graphs }));
+    updateProgress();
+  }
+
+  function table(t) {
+    if (!t || !t.columns) return null;
+    return el('table', { class: 'vals' }, [
+      el('thead', null, [el('tr', null, t.columns.map(function (c) { return el('th', { text: c }); }))]),
+      el('tbody', null, (t.rows || []).map(function (r) {
+        return el('tr', null, r.map(function (c) { return el('td', { text: c }); }));
+      }))
+    ]);
+  }
+
+  function fieldEl(f) {
+    var wrap = el('div', { class: 'field' });
+    var inputId = 'f-' + f.id;
+    if (f.type === 'choice') {
+      if (f.label) wrap.appendChild(el('label', { text: f.label }));
+      var box = el('div', { class: 'choices', role: 'group' });
+      (f.options || []).forEach(function (opt) {
+        var b = el('button', { type: 'button', 'aria-pressed': String(answers[f.id] === opt), text: opt });
+        b.addEventListener('click', function () {
+          answers[f.id] = answers[f.id] === opt ? '' : opt;
+          Array.prototype.forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(answers[f.id] === c.textContent)); });
+          wrap.classList.toggle('filled', !!answers[f.id]);
+          saveDraftSafe();
+        });
+        box.appendChild(b);
+      });
+      wrap.appendChild(box);
+    } else {
+      if (f.label) wrap.appendChild(el('label', { for: inputId, text: f.label }));
+      var isLong = f.type === 'long' || f.type === 'paper';
+      var input = isLong
+        ? el('textarea', { id: inputId, rows: f.type === 'paper' ? '2' : '4', placeholder: f.type === 'paper' ? 'Anything you want to say about your graph' : 'Type your answer and show your work…' })
+        : el('input', { id: inputId, type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'Your answer' });
+      if (f.type === 'paper') input.style.minHeight = '70px';
+      input.value = answers[f.id] || '';
+      input.addEventListener('input', function () {
+        answers[f.id] = input.value;
+        wrap.classList.toggle('filled', !!input.value.trim());
+        saveDraftSafe();
+      });
+      if (f.suffix) wrap.appendChild(el('div', { class: 'row' }, [input, el('span', { class: 'suffix', text: f.suffix })]));
+      else wrap.appendChild(input);
+    }
+    wrap.classList.toggle('filled', !!(answers[f.id] || '').trim());
+    return wrap;
+  }
+
+  function resizeImage(file, cb) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1600, w = img.width, h = img.height, s = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.round(w * s); c.height = Math.round(h * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        cb(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = function () { alertModal('😕', 'Hmm', 'That picture could not be opened. Try taking the photo again.'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function pictureCount() {
+    var n = 0;
+    Object.keys(photos).forEach(function (k) { n += (photos[k] || []).length; });
+    Object.keys(graphs).forEach(function (k) { if (graphs[k]) n++; });
+    return n;
+  }
+  function tooManyPictures() {
+    alertModal('🖼️', 'That\'s a lot of pictures', 'You can send up to ' + MAX_PICTURES + ' pictures (photos + graphs) at once. Remove one first.');
+  }
+
+  function paperEl(p) {
+    var box = el('div', { class: 'paper' }, [
+      el('div', { class: 'big', text: '✏️ Do this one on graph paper, or use the graph tool.' }),
+      el('div', { class: 'muted', text: 'Add a photo of your paper, or put your graph from the tool in your answer. (Optional)' })
+    ]);
+    var thumbs = el('div', { class: 'thumbs' });
+    function drawThumbs() {
+      thumbs.innerHTML = '';
+      (photos[p.id] || []).forEach(function (src, i) {
+        thumbs.appendChild(el('div', { class: 'thumb' }, [
+          el('img', { src: src, alt: 'Photo ' + (i + 1) }),
+          el('button', { type: 'button', 'aria-label': 'Remove photo', text: '×', onclick: function () {
+            photos[p.id].splice(i, 1); saveDraftSafe(); drawThumbs();
+          } })
+        ]));
+      });
+    }
+    var fileInput = el('input', { type: 'file', accept: 'image/*' });
+    fileInput.addEventListener('change', function () {
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      fileInput.value = '';
+      if (pictureCount() >= MAX_PICTURES) { tooManyPictures(); return; }
+      resizeImage(f, function (dataUrl) {
+        (photos[p.id] = photos[p.id] || []).push(dataUrl);
+        saveDraftSafe(); drawThumbs();
+      });
+    });
+    box.appendChild(el('div', { class: 'paper-btns' }, [
+      el('button', { type: 'button', class: 'photo-btn graph', text: '📈 Open graph tool', onclick: function () { openGraph(p.id); } }),
+      el('label', { class: 'photo-btn' }, ['📷 Add a photo', fileInput])
+    ]));
+    var att = el('div', { class: 'graph-att', id: 'graph-att-' + p.id });
+    function drawAttached() {
+      att.innerHTML = '';
+      var g = graphs[p.id];
+      if (!g) return;
+      var src = null;
+      try { src = graphPNG(g, graphTitle(p.id)); } catch (e) {}
+      att.appendChild(el('div', { class: 'att-head', text: '📈 Your graph is in your answer' }));
+      if (src) att.appendChild(el('img', { src: src, alt: 'Your graph for ' + graphTitle(p.id) }));
+      att.appendChild(el('div', { class: 'att-desc', text: M.describeGraph(g).split('\n').slice(1).join('\n') }));
+      att.appendChild(el('div', { class: 'paper-btns' }, [
+        el('button', { type: 'button', class: 'photo-btn graph', text: '✏️ Change graph', onclick: function () { openGraph(p.id); } }),
+        el('button', { type: 'button', class: 'photo-btn', text: '🗑️ Take it out', onclick: function () {
+          delete graphs[p.id]; saveDraftSafe(); drawAttached();
+        } })
+      ]));
+    }
+    paperRefresh[p.id] = drawAttached;
+    box.appendChild(att);
+    box.appendChild(thumbs);
+    drawThumbs();
+    drawAttached();
+    return box;
+  }
+  function saveDraftSafe() {
+    try { saveDraft(); } catch (e) { // photos may be too big for localStorage; keep answers (and graph settings) at least
+      store(storeKey, JSON.stringify({ answers: answers, photos: {}, graphs: graphs })); updateProgress();
+    }
+  }
+
+  function render() {
+    if (!test) {
+      app.appendChild(el('header', { class: 'top' }, [el('h1', { text: 'Math practice' })]));
+      app.appendChild(el('div', { class: 'card error' }, [
+        el('p', { text: '😴 ' + (DATA.error || 'No test is ready yet.') }),
+        el('p', { class: 'muted', text: 'New tests show up every morning around 7:30. Check the link in today\'s email.' })
+      ]));
+      app.appendChild(otherDays());
+      return;
+    }
+    try {
+      var saved = JSON.parse(load(storeKey) || 'null');
+      if (saved) { answers = saved.answers || {}; photos = saved.photos || {}; graphs = saved.graphs || {}; }
+    } catch (e) {}
+
+    (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) {
+      partById[p.id] = { part: p, q: q };
+      fieldsForPart(p).forEach(function (f) {
+        fieldInfo[f.id] = String(q.number) + (p.label || '') + (f.label ? ' · ' + f.label : '');
+      });
+    }); });
+    Object.keys(graphs).forEach(function (pid) { if (!partById[pid] || !graphs[pid] || !graphs[pid].axes) delete graphs[pid]; });
+
+    app.appendChild(el('header', { class: 'top' }, [
+      el('h1', { text: test.title || 'Math practice' }),
+      el('div', { class: 'date', text: '📅 ' + prettyDate(test.date) }),
+      test.instructions ? el('div', { class: 'instructions', text: test.instructions }) : null
+    ]));
+
+    app.appendChild(el('div', { class: 'sent-banner', id: 'sentBanner' }));
+    var last = load('rio-math-sent-' + test.date);
+    if (last) showSentBanner(last);
+
+    var nameInput = el('input', { type: 'text', id: 'name', autocomplete: 'name', value: load('rio-math-name') || 'Rio' });
+    nameInput.addEventListener('input', function () { store('rio-math-name', nameInput.value); });
+    app.appendChild(el('div', { class: 'card' }, [el('div', { class: 'stamp' }, [
+      el('div', null, [el('label', { for: 'name', text: 'Your name' }), nameInput]),
+      el('div', null, [el('label', { text: 'Today' }), el('div', { style: 'padding:12px 0;font-weight:700', text: DATA.today })])
+    ]), el('div', { style: 'height:10px' })]));
+
+    (test.questions || []).forEach(function (q) {
+      var card = el('section', { class: 'card', id: 'q' + q.number }, [
+        el('div', { class: 'qhead' }, [el('div', { class: 'qnum', text: String(q.number) }), el('div', { class: 'qtitle', text: q.title || ('Question ' + q.number) })]),
+        q.prompt ? el('div', { class: 'qprompt', text: q.prompt }) : null,
+        table(q.table)
+      ]);
+      (q.parts || []).forEach(function (p) {
+        var partEl = el('div', { class: 'part', id: 'p-' + p.id }, [
+          el('div', null, [p.label ? el('span', { class: 'plabel', text: p.label }) : null, el('span', { class: 'pprompt', text: p.prompt || '' })]),
+          table(p.table)
+        ]);
+        if (p.type === 'info') partEl.appendChild(el('div', { class: 'info', text: 'Nothing to type here — just read it.' }));
+        if (p.type === 'paper') partEl.appendChild(paperEl(p));
+        fieldsForPart(p).forEach(function (f) { partEl.appendChild(fieldEl(f)); });
+        card.appendChild(partEl);
+      });
+      app.appendChild(card);
+    });
+    app.appendChild(otherDays());
+    document.getElementById('bar').hidden = false;
+    updateProgress();
+  }
+
+  function otherDays() {
+    var dates = DATA.recent || [];
+    if (dates.length < 2 && test) return el('div');
+    var sel = el('select', { 'aria-label': 'Other days' }, [el('option', { value: '', text: 'Pick a day…' })].concat(
+      dates.map(function (d) { return el('option', { value: d, text: d + (test && d === test.date ? ' (this one)' : '') }); })));
+    sel.addEventListener('change', function () {
+      if (sel.value && DATA.baseUrl) window.top.location.href = DATA.baseUrl + '?date=' + encodeURIComponent(sel.value);
+    });
+    return el('div', { class: 'card other-days' }, [el('p', null, ['Other days\' tests: ', sel])]);
+  }
+
+  function counts() {
+    var fields = allFields();
+    var done = fields.filter(function (f) { return (answers[f.id] || '').trim(); }).length;
+    var required = fields.filter(function (f) { return f.type !== 'paper'; });
+    var blanks = required.filter(function (f) { return !(answers[f.id] || '').trim(); });
+    return { done: done, total: fields.length, blanks: blanks, requiredTotal: required.length };
+  }
+  function updateProgress() {
+    var c = counts();
+    var reqDone = c.requiredTotal - c.blanks.length;
+    document.getElementById('progressTxt').textContent = reqDone + ' of ' + c.requiredTotal + ' boxes filled';
+    document.getElementById('progressFill').style.width = (c.requiredTotal ? Math.round(100 * reqDone / c.requiredTotal) : 0) + '%';
+  }
+
+  function openModal(children) {
+    var m = document.getElementById('modal');
+    m.innerHTML = '';
+    children.forEach(function (c) { if (c) m.appendChild(c); });
+    document.getElementById('overlay').classList.add('show');
+  }
+  function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+  function alertModal(emoji, title, msg) {
+    openModal([el('div', { class: 'emoji', text: emoji }), el('h2', { text: title }), el('p', { text: msg }),
+      el('div', { class: 'actions' }, [el('button', { class: 'btn', type: 'button', text: 'OK', onclick: closeModal })])]);
+  }
+
+  function showSentBanner(when) {
+    var b = document.getElementById('sentBanner');
+    if (!b) return;
+    b.textContent = '✅ Sent at ' + when + '. You can fix answers and press Submit again — the newest one counts.';
+    b.classList.add('show');
+  }
+
+  function trySubmit() {
+    var c = counts();
+    if (c.blanks.length) {
+      var first = c.blanks[0];
+      openModal([
+        el('div', { class: 'emoji', text: '🤔' }),
+        el('h2', { text: c.blanks.length + ' box' + (c.blanks.length === 1 ? ' is' : 'es are') + ' empty' }),
+        el('p', { text: 'Do you want to go back and try them, or send it now?' }),
+        el('div', { class: 'actions' }, [
+          el('button', { class: 'btn secondary', type: 'button', text: 'Go back', onclick: function () {
+            closeModal();
+            var n = document.getElementById('f-' + first.id) || document.querySelector('[id="f-' + first.id + '"]');
+            var target = n || document.body;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (n && n.focus) setTimeout(function () { n.focus(); }, 400);
+          } }),
+          el('button', { class: 'btn', type: 'button', text: 'Send it', onclick: function () { closeModal(); doSubmit(); } })
+        ])
+      ]);
+    } else {
+      doSubmit();
+    }
+  }
+
+  /** Answers + pictures exactly as they are sent. Graph-tool graphs go in as a PNG "photo" of their part
+   *  (same path as camera photos, first so the 8-picture limit never drops them) plus a text description
+   *  appended to that part's notes answer, so the grader can read the settings without opening the picture. */
+  function buildSubmission() {
+    var sendAnswers = {}, photoList = [], graphCount = 0;
+    Object.keys(answers).forEach(function (k) { sendAnswers[k] = answers[k]; });
+    Object.keys(graphs).forEach(function (pid) {
+      var g = graphs[pid];
+      if (!g || !partById[pid]) return;
+      var png = null;
+      try { png = graphPNG(g, graphTitle(pid)); } catch (e) {}
+      if (png) photoList.push({ partId: pid, dataUrl: png });
+      var key = pid + '-notes', notes = String(answers[key] || '').trim(), desc = M.describeGraph(g);
+      if (!png) desc = desc.replace(' \u2014 picture attached', ' \u2014 picture could not be made');
+      sendAnswers[key] = notes ? notes + '\n\n' + desc : desc;
+      graphCount++;
+    });
+    Object.keys(photos).forEach(function (pid) { (photos[pid] || []).forEach(function (d) { photoList.push({ partId: pid, dataUrl: d }); }); });
+    return { answers: sendAnswers, photos: photoList.slice(0, MAX_PICTURES), graphCount: graphCount };
+  }
+
+  function doSubmit() {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    var built = buildSubmission();
+    var payload = {
+      testDate: test.date,
+      name: (document.getElementById('name').value || 'Rio').trim(),
+      stampDate: DATA.today,
+      answers: built.answers,
+      photos: built.photos,
+      client: { userAgent: navigator.userAgent, startedAt: startedAt }
+    };
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false; btn.textContent = 'Submit ✈️';
+        var c = counts();
+        var t = new Date();
+        var when = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        store('rio-math-sent-' + test.date, when);
+        showSentBanner(when);
+        var nGraphs = Math.min(built.graphCount, (res && res.photos) || 0), nPhotos = Math.max(0, ((res && res.photos) || 0) - nGraphs);
+        var extra = (nGraphs ? ' · ' + nGraphs + ' graph' + (nGraphs === 1 ? '' : 's') : '') + (nPhotos ? ' · ' + nPhotos + ' photo' + (nPhotos === 1 ? '' : 's') : '');
+        openModal([
+          el('div', { class: 'emoji', text: '🎉' }),
+          el('h2', { text: 'Sent!' }),
+          el('p', { text: 'Great work, ' + payload.name + '! Your answers were saved.' }),
+          el('p', { class: 'muted', text: (c.requiredTotal - c.blanks.length) + ' of ' + c.requiredTotal + ' boxes answered' + extra + '.' }),
+          el('p', { class: 'muted', text: 'You\'ll get feedback tomorrow morning.' }),
+          el('div', { class: 'actions' }, [el('button', { class: 'btn', type: 'button', text: 'Yay!', onclick: closeModal })])
+        ]);
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false; btn.textContent = 'Submit ✈️';
+        alertModal('😕', 'Not sent yet', 'Something went wrong: ' + (err && err.message || err) + ' — your answers are still here. Check the internet and try again.');
+      })
+      .submitAnswers(payload);
+  }
+
+  /* =====================================================================
+   * Tools: 📈 Graph and 🧮 Calculator popups (one overlay, two tabs).
+   * They sit on top of the page and never re-render it, so typed answers stay put.
+   * ===================================================================== */
+  var toolEl = document.getElementById('toolOverlay');
+  var currentTool = null, toolOpener = null;
+  var lastField = null;   // last answer box he was typing in, for "Put in my answer"
+  var FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  function $(id) { return document.getElementById(id); }
+  function show(n, on) { n.hidden = !on; }
+  function uni(s) { return String(s).replace(/-/g, '\u2212'); }   // nicer minus for display
+
+  app.addEventListener('focusin', function (e) {
+    var t = e.target;
+    if (t && /^f-/.test(t.id || '') && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type === 'text'))) lastField = t;
+  });
+
+  function openTool(name) {
+    if (toolEl.hidden) {
+      toolOpener = document.activeElement;
+      toolEl.hidden = false;
+      document.body.classList.add('tool-open');
+      selectTool(name);
+      try { $('toolClose').focus({ preventScroll: true }); } catch (e) {}   // keyboard focus moves into the popup
+      return;
+    }
+    selectTool(name);
+  }
+  function selectTool(name) {
+    currentTool = name;
+    $('tabGraph').checked = name === 'graph';
+    $('tabCalc').checked = name === 'calc';
+    show($('graphTool'), name === 'graph');
+    show($('calcTool'), name === 'calc');
+    show($('gFoot'), name === 'graph' && !!G.part);
+    if (name === 'graph') { ensureGraphReady(); requestAnimationFrame(drawScreen); }
+    if (name === 'calc') { buildCalc(); renderCalc(); }
+    $('toolBody').scrollTop = 0;
+  }
+  function closeTool() {
+    if (toolEl.hidden) return;
+    toolEl.hidden = true;
+    document.body.classList.remove('tool-open');
+    currentTool = null;
+    if (toolOpener && toolOpener.focus && document.body.contains(toolOpener)) {
+      try { toolOpener.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+  $('toolClose').addEventListener('click', closeTool);
+  toolEl.addEventListener('click', function (e) { if (e.target === toolEl) closeTool(); });
+  $('tabGraph').addEventListener('change', function () { if (this.checked) { if (!G.ws) openGraph(null); else selectTool('graph'); } });
+  $('tabCalc').addEventListener('change', function () { if (this.checked) selectTool('calc'); });
+  $('openGraphBtn').addEventListener('click', function () { openGraph(null); });
+  $('openCalcBtn').addEventListener('click', function () { openTool('calc'); });
+
+  function flashEl(n) {
+    if (!n) return;
+    n.classList.remove('flash'); void n.offsetWidth; n.classList.add('flash');
+    setTimeout(function () { n.classList.remove('flash'); }, 1300);
+  }
+
+  /** Puts text at the cursor of the last answer box, saves it like normal typing, closes the tool. */
+  function insertIntoAnswer(text) {
+    var f = lastField;
+    if (!f || !document.body.contains(f)) return false;
+    var v = f.value, s = typeof f.selectionStart === 'number' ? f.selectionStart : v.length;
+    var e = typeof f.selectionEnd === 'number' ? f.selectionEnd : v.length;
+    f.value = v.slice(0, s) + text + v.slice(e);
+    try { f.setSelectionRange(s + text.length, s + text.length); } catch (x) {}
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+    closeTool();
+    f.scrollIntoView({ block: 'center' });
+    flashEl(f);
+    return true;
+  }
+
+  function copyText(text, btn, label) {
+    function done(ok) {
+      btn.textContent = ok ? '✅ Copied' : 'Copy didn\'t work';
+      setTimeout(function () { btn.textContent = label; }, 1500);
+    }
+    function fallback() {
+      var ta = el('textarea', { style: 'position:fixed;top:-200px;left:0;opacity:0' });
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta); done(ok);
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+
+  /* ------------------------------ graph drawing ------------------------------ */
+  var DEFAULT_AXES = { xmin: -10, xmax: 10, xstep: 1, ymin: -10, ymax: 10, ystep: 1 };
+  var AXIS_KEYS = ['xmin', 'xmax', 'xstep', 'ymin', 'ymax', 'ystep'];
+
+  function withParsed(items) {
+    return (items || []).map(function (it) {
+      var p = null;
+      try { p = M.parseGraphInput(it.input); } catch (e) {}
+      return { input: it.input, label: it.label, color: it.color, p: p };
+    });
+  }
+  function itemName(it) { return it.p ? uni(it.p.text) : it.input; }
+
+  /**
+   * Draws axes, grid, tick numbers and items on a 2D context (W x H in CSS px).
+   * o: { font, pad, lineW, dot, axisW, title, titleH, legend, legendH }
+   * Returns the view transform (used for taps).
+   */
+  function drawGraph(ctx, W, H, axes, items, o) {
+    o = o || {};
+    var fs = o.font || 13, pad = o.pad || 8;
+    var xt = M.ticks(axes.xmin, axes.xmax, axes.xstep), yt = M.ticks(axes.ymin, axes.ymax, axes.ystep);
+    function lab(v) { return uni(M.formatNumber(v)); }
+    function setFont(w, size) { ctx.font = w + ' ' + (size || fs) + 'px ' + FONT; }
+    setFont(600);
+    var yLabW = 0, xLabW = 0;
+    yt.forEach(function (t) { yLabW = Math.max(yLabW, ctx.measureText(lab(t.v)).width); });
+    xt.forEach(function (t) { xLabW = Math.max(xLabW, ctx.measureText(lab(t.v)).width); });
+    var yAxisIn = axes.xmin < 0 && axes.xmax > 0, xAxisIn = axes.ymin < 0 && axes.ymax > 0;
+    var top = pad + (o.titleH || 0) + fs * 0.4, right = W - pad - fs * 0.3, bottom = H - pad - (o.legendH || 0), left = pad;
+    if (!yAxisIn) left += yLabW + 8;
+    if (!xAxisIn) bottom -= fs + 8;
+    var pw = right - left, ph = bottom - top;
+    function sx(x) { return left + (x - axes.xmin) / (axes.xmax - axes.xmin) * pw; }
+    function sy(y) { return bottom - (y - axes.ymin) / (axes.ymax - axes.ymin) * ph; }
+    function seg(x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+    function halo(text, x, y, color, w) {
+      ctx.lineJoin = 'round'; ctx.lineWidth = w || Math.max(3, fs / 4); ctx.strokeStyle = 'rgba(255,255,255,.95)';
+      ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+    }
+
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+    if (o.title) {
+      setFont(800, fs * 1.1); ctx.fillStyle = '#1d2433'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(o.title, pad, pad + o.titleH / 2);
+    }
+    var everyX = M.labelEvery(pw / ((axes.xmax - axes.xmin) / axes.xstep), xLabW + fs * 0.6);
+    var everyY = M.labelEvery(ph / ((axes.ymax - axes.ymin) / axes.ystep), fs * 1.5);
+    // grid: light lines at every interval, a bit darker where there is a number
+    ctx.lineWidth = 1;
+    [false, true].forEach(function (strong) {
+      ctx.strokeStyle = strong ? '#b9c5de' : '#dfe6f3';
+      ctx.beginPath();
+      xt.forEach(function (t) { if ((t.k % everyX === 0) !== strong) return; var X = Math.round(sx(t.v)) + 0.5; ctx.moveTo(X, top); ctx.lineTo(X, bottom); });
+      yt.forEach(function (t) { if ((t.k % everyY === 0) !== strong) return; var Y = Math.round(sy(t.v)) + 0.5; ctx.moveTo(left, Y); ctx.lineTo(right, Y); });
+      ctx.stroke();
+    });
+    ctx.strokeStyle = '#9aa7c2'; ctx.lineWidth = 1.5; ctx.strokeRect(left, top, pw, ph);
+    // bold axes
+    var yAxisVis = axes.xmin <= 0 && axes.xmax >= 0, xAxisVis = axes.ymin <= 0 && axes.ymax >= 0;
+    var ax0 = sx(0), ay0 = sy(0);
+    ctx.strokeStyle = '#1d2433'; ctx.lineWidth = o.axisW || 2.5;
+    if (yAxisVis) seg(ax0, top, ax0, bottom);
+    if (xAxisVis) seg(left, ay0, right, ay0);
+    // tick numbers (skipping some when they would crowd)
+    setFont(600);
+    var tick = Math.max(4, fs * 0.35);
+    var xLabY, xBase = 'top', xAlong = xAxisIn;
+    if (xAxisIn) { xLabY = ay0 + tick + 2; if (xLabY + fs > bottom) { xLabY = ay0 - tick - 2; xBase = 'bottom'; } }
+    else xLabY = bottom + 5;
+    ctx.textAlign = 'center'; ctx.textBaseline = xBase;
+    xt.forEach(function (t) {
+      if (t.k % everyX !== 0) return;
+      if (t.v === 0 && xAxisIn && yAxisIn) return;
+      var X = sx(t.v), s = lab(t.v), w = ctx.measureText(s).width;
+      if (xAxisVis) { ctx.strokeStyle = '#1d2433'; ctx.lineWidth = 1.5; seg(X, ay0 - tick, X, ay0 + tick); }
+      X = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, X));
+      if (xAlong) halo(s, X, xLabY, '#1d2433'); else { ctx.fillStyle = '#1d2433'; ctx.fillText(s, X, xLabY); }
+    });
+    var yLabX, yAlign = 'right', yAlong = yAxisIn;
+    if (yAxisIn) { yLabX = ax0 - tick - 3; if (yLabX - yLabW < left) { yLabX = ax0 + tick + 3; yAlign = 'left'; } }
+    else yLabX = left - 5;
+    ctx.textAlign = yAlign; ctx.textBaseline = 'middle';
+    yt.forEach(function (t) {
+      if (t.k % everyY !== 0) return;
+      if (t.v === 0 && xAxisIn && yAxisIn) return;
+      var Y = sy(t.v), s = lab(t.v);
+      if (yAxisVis) { ctx.strokeStyle = '#1d2433'; ctx.lineWidth = 1.5; seg(ax0 - tick, Y, ax0 + tick, Y); }
+      Y = Math.max(fs / 2 + 1, Math.min(H - fs / 2 - 1, Y));
+      if (yAlong) halo(s, yLabX, Y, '#1d2433'); else { ctx.fillStyle = '#1d2433'; ctx.fillText(s, yLabX, Y); }
+    });
+    if (xAxisIn && yAxisIn) { ctx.textAlign = 'right'; ctx.textBaseline = 'top'; halo('0', ax0 - 4, ay0 + 3, '#1d2433'); }
+    setFont('italic 800', fs * 1.1);
+    if (xAxisVis) { ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; halo('x', right - 3, ay0 - 3, '#1d2433'); }
+    if (yAxisVis) { ctx.textAlign = 'left'; ctx.textBaseline = 'top'; halo('y', ax0 + 5, top + 2, '#1d2433'); }
+
+    // the things he graphed
+    var box = { xmin: axes.xmin, xmax: axes.xmax, ymin: axes.ymin, ymax: axes.ymax }, labels = [], shapes = [];
+    var SPOTS = [0.85, 0.7, 0.55, 0.4, 0.25, 0.95, 0.1];
+    ctx.save();
+    ctx.beginPath(); ctx.rect(left, top, pw, ph); ctx.clip();
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    items.forEach(function (it, idx) {
+      var p = it.p;
+      if (!p) return;
+      ctx.strokeStyle = ctx.fillStyle = it.color; ctx.lineWidth = o.lineW || 3;
+      var spots = SPOTS, text = it.label || itemName(it);
+      if (p.kind === 'line') {
+        var s = M.clipLine(p.a, p.b, p.c, box);
+        if (!s) return;
+        seg(sx(s[0][0]), sy(s[0][1]), sx(s[1][0]), sy(s[1][1]));
+        shapes.push({ line: p });
+        labels.push({ text: text, color: it.color, anchors: spots.map(function (t) {
+          return [sx(s[0][0] + (s[1][0] - s[0][0]) * t), sy(s[0][1] + (s[1][1] - s[0][1]) * t)];
+        }) });
+      } else if (p.kind === 'curve') {
+        var runs = M.sampleCurve(p, box, Math.max(200, Math.min(900, Math.round(pw)))), visible = [];
+        runs.forEach(function (run) {
+          ctx.beginPath();
+          run.forEach(function (pt, i) {
+            if (i) ctx.lineTo(sx(pt[0]), sy(pt[1])); else ctx.moveTo(sx(pt[0]), sy(pt[1]));
+            if (pt[1] >= box.ymin && pt[1] <= box.ymax) visible.push([sx(pt[0]), sy(pt[1])]);
+          });
+          ctx.stroke();
+        });
+        shapes.push({ pts: visible });
+        if (visible.length) labels.push({ text: text, color: it.color, anchors: spots.map(function (t) { return visible[Math.floor((visible.length - 1) * t)]; }) });
+      } else if (p.kind === 'points') {
+        var r = o.dot || 6, firstPt = true;
+        p.points.forEach(function (pt) {
+          if (pt.x < box.xmin || pt.x > box.xmax || pt.y < box.ymin || pt.y > box.ymax) return;
+          var X = sx(pt.x), Y = sy(pt.y);
+          ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fillStyle = it.color; ctx.fill();
+          ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+          shapes.push({ pts: [[X, Y]], r: r + 2 });
+          var coords = (pt.name ? pt.name : '') + '(' + uni(M.formatNumber(pt.x)) + ', ' + uni(M.formatNumber(pt.y)) + ')';
+          labels.push({ text: (firstPt && it.label ? it.label + ' ' : '') + coords, color: it.color, anchors: [[X, Y]], gap: r });
+          firstPt = false;
+        });
+      }
+    });
+    ctx.restore();
+
+    // Labels: try spots along each line (and sides of it) until one doesn't cover another label, a line, or the axis numbers.
+    var taken = [];
+    if (xAxisVis && xAlong) taken.push({ x: left, y: xBase === 'top' ? ay0 - 2 : ay0 - tick - fs - 4, w: pw, h: tick + fs + 6 });
+    if (yAxisVis && yAlong) taken.push({ x: yAlign === 'right' ? yLabX - yLabW - 2 : ax0 - tick, y: top, w: yLabW + tick + 8, h: ph });
+    setFont('italic 800', fs * 1.1);
+    if (xAxisVis) taken.push({ x: right - fs * 1.2, y: ay0 - fs * 1.4, w: fs * 1.2, h: fs * 1.4 });
+    if (yAxisVis) taken.push({ x: ax0, y: top, w: fs * 1.6, h: fs * 1.4 });
+    function overlaps(a, b) { return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
+    function hitsShape(rc) {
+      var dbox = { xmin: axes.xmin + (rc.x - left) / pw * (axes.xmax - axes.xmin), xmax: axes.xmin + (rc.x + rc.w - left) / pw * (axes.xmax - axes.xmin),
+        ymin: axes.ymin + (bottom - rc.y - rc.h) / ph * (axes.ymax - axes.ymin), ymax: axes.ymin + (bottom - rc.y) / ph * (axes.ymax - axes.ymin) };
+      return shapes.some(function (sh) {
+        if (sh.line) return !!M.clipLine(sh.line.a, sh.line.b, sh.line.c, dbox);
+        var pad2 = sh.r || 2;
+        return sh.pts.some(function (q) { return q[0] >= rc.x - pad2 && q[0] <= rc.x + rc.w + pad2 && q[1] >= rc.y - pad2 && q[1] <= rc.y + rc.h + pad2; });
+      });
+    }
+    setFont(800);
+    labels.forEach(function (L) {
+      var w = ctx.measureText(L.text).width + 4, h = fs + 4, g = (L.gap || 0) + 5, best = null, found = false;
+      var offs = [[-w - g, -h - g + 2], [g, -h - g + 2], [g, g - 2], [-w - g, g - 2]];
+      if (L.gap) offs = [offs[1], offs[0], offs[2], offs[3]];
+      for (var i = 0; i < L.anchors.length && !found; i++) {
+        for (var j = 0; j < offs.length && !found; j++) {
+          var rc = { x: L.anchors[i][0] + offs[j][0], y: L.anchors[i][1] + offs[j][1], w: w, h: h };
+          rc.x = Math.max(left + 2, Math.min(right - 2 - w, rc.x));
+          rc.y = Math.max(top + 2, Math.min(bottom - 2 - h, rc.y));
+          if (!best) best = rc;
+          if (!taken.some(function (t) { return overlaps(t, rc); }) && !hitsShape(rc)) { best = rc; found = true; }
+        }
+      }
+      if (!best) return;
+      taken.push(best);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      halo(L.text, best.x + 2, best.y + 2, L.color, Math.max(4, fs / 3));
+    });
+    // legend (used in the saved picture)
+    if (o.legend && items.length) {
+      var ly = bottom + (xAxisIn ? 0 : fs + 8) + fs * 1.2;
+      items.forEach(function (it) {
+        ctx.strokeStyle = it.color; ctx.lineWidth = o.lineW || 3;
+        seg(pad + 4, ly, pad + 40, ly);
+        setFont(700); ctx.fillStyle = '#1d2433'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText((it.label ? it.label + ':  ' : '') + itemName(it), pad + 52, ly);
+        ly += fs * 1.7;
+      });
+    }
+    return { left: left, top: top, pw: pw, ph: ph, axes: axes, sx: sx, sy: sy };
+  }
+
+  /** The picture that gets sent with the answer (fixed size, same on every device). */
+  function graphPNG(spec, title) {
+    var items = withParsed(spec.items), W = 900, fs = 22, titleH = title ? 40 : 0;
+    var legendH = items.length ? Math.round(fs * 1.2 + items.length * fs * 1.7) : 0;
+    var H = 860 + titleH + legendH;
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    drawGraph(c.getContext('2d'), W, H, spec.axes, items,
+      { font: fs, pad: 18, lineW: 4.5, dot: 9, axisW: 3.5, title: title, titleH: titleH, legend: true, legendH: legendH });
+    return c.toDataURL('image/png');
+  }
+  function graphTitle(pid) {
+    var info = partById[pid];
+    return info ? 'Question ' + info.q.number + (info.part.label || '') + ' \u2014 graph' : 'Graph';
+  }
+
+  /* ------------------------------ graph tool ------------------------------ */
+  var G = { mode: 'free', part: null, ws: null, axes: DEFAULT_AXES, axesOk: true, view: null, tap: null };
+  var gReady = false;
+
+  function wsKey(mode) { return mode === 'free' ? 'rio-math-graph-free' : 'rio-math-graph-' + (test ? test.date : 'none') + '-' + mode; }
+  function axesToText(ax) { var t = {}; AXIS_KEYS.forEach(function (k) { t[k] = M.formatNumber(ax[k]); }); return t; }
+  function loadWs(mode, part) {
+    try {
+      var w = JSON.parse(load(wsKey(mode)) || 'null');
+      if (w && w.axesText && Array.isArray(w.items)) return w;
+    } catch (e) {}
+    if (part && graphs[part.id]) return { axesText: axesToText(graphs[part.id].axes), items: graphs[part.id].items.slice() };
+    return { axesText: axesToText((part && M.suggestedAxes(part.prompt)) || DEFAULT_AXES), items: [] };
+  }
+  function saveWs() { if (G.ws) store(wsKey(G.mode), JSON.stringify(G.ws)); }
+
+  function ensureGraphReady() {
+    if (gReady) return;
+    gReady = true;
+    AXIS_KEYS.forEach(function (k) {
+      var inp = $('ax-' + k);
+      inp.addEventListener('input', function () { G.ws.axesText[k] = inp.value; applyAxes(); saveWs(); });
+    });
+    ['x', 'y', '=', '(', ')', '/', '-', ',', '.'].forEach(function (ch) {
+      var b = el('button', { type: 'button', text: ch === '-' ? '\u2212' : ch, 'aria-label': 'Type ' + ch });
+      b.addEventListener('mousedown', function (e) { e.preventDefault(); });   // keep the text box focused
+      b.addEventListener('click', function () {
+        var inp = $('gInput'), v = inp.value;
+        var s = typeof inp.selectionStart === 'number' ? inp.selectionStart : v.length, e2 = typeof inp.selectionEnd === 'number' ? inp.selectionEnd : v.length;
+        var add = ch === '=' ? ' = ' : ch === ',' ? ', ' : ch;
+        inp.value = v.slice(0, s) + add + v.slice(e2);
+        try { inp.setSelectionRange(s + add.length, s + add.length); } catch (x) {}
+      });
+      $('gKeys').appendChild(b);
+    });
+    $('gAdd').addEventListener('click', addItem);
+    [$('gInput'), $('gLabel')].forEach(function (inp) {
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
+    });
+    $('gResetAxes').addEventListener('click', function () { setAxesText(axesToText(DEFAULT_AXES)); });
+    $('gSuggest').addEventListener('click', function () { var s = G.part && M.suggestedAxes(G.part.prompt); if (s) setAxesText(axesToText(s)); });
+    $('gClear').addEventListener('click', function () {
+      if (!G.ws.items.length) return;
+      G.ws.items = []; G.tap = null; saveWs(); renderList(); drawScreen(); addMsg('Cleared. The axes are still the same.', false);
+    });
+    $('gCanvas').addEventListener('click', onCanvasTap);
+    $('gUse').addEventListener('click', useGraph);
+    window.addEventListener('resize', function () { if (currentTool === 'graph') drawScreen(); });
+  }
+
+  function openGraph(partId) {
+    var info = partId ? partById[partId] : null;
+    ensureGraphReady();
+    G.part = info ? info.part : null;
+    G.mode = info ? info.part.id : 'free';
+    G.ws = loadWs(G.mode, G.part);
+    G.tap = null;
+    AXIS_KEYS.forEach(function (k) { $('ax-' + k).value = G.ws.axesText[k] == null ? '' : G.ws.axesText[k]; });
+    var tgt = $('gTarget');
+    tgt.innerHTML = '';
+    if (info) {
+      tgt.appendChild(el('b', { text: '✏️ For question ' + info.q.number + (info.part.label || '') + ': ' }));
+      tgt.appendChild(document.createTextNode(info.part.prompt || ''));
+    }
+    show(tgt, !!info);
+    show($('gSuggest'), !!(G.part && M.suggestedAxes(G.part.prompt)));
+    $('gUse').textContent = info && graphs[info.part.id] ? '✅ Update the graph in my answer' : '✅ Use this graph in my answer';
+    $('gFootNote').textContent = info ? 'The picture and the settings go in with your answer for ' + info.q.number + (info.part.label || '') + '.' : '';
+    addMsg('', false);
+    applyAxes(true);
+    renderList();
+    openTool('graph');
+  }
+
+  function setAxesText(t) {
+    G.ws.axesText = t;
+    AXIS_KEYS.forEach(function (k) { $('ax-' + k).value = t[k]; });
+    applyAxes(); saveWs();
+  }
+  function applyAxes(noDraw) {
+    var r = M.validateAxes(G.ws.axesText), msg = $('gAxisMsg');
+    AXIS_KEYS.forEach(function (k) { $('ax-' + k).classList.toggle('bad', !!r.bad[k]); });
+    G.axesOk = r.ok;
+    if (r.ok) { G.axes = r.axes; msg.hidden = true; }
+    else {
+      msg.innerHTML = '';
+      r.errors.forEach(function (e) { msg.appendChild(el('div', { text: '⚠️ ' + e })); });
+      msg.appendChild(el('div', { class: 'muted', text: 'The graph shows your last good settings until this is fixed.' }));
+      msg.hidden = false;
+    }
+    $('gUse').disabled = !r.ok;
+    if (!noDraw) drawScreen();
+  }
+
+  function addMsg(text, bad) {
+    var m = $('gAddMsg');
+    m.textContent = text; m.classList.toggle('bad', !!bad); m.hidden = !text;
+  }
+
+  function isVisible(p, a) {
+    var box = { xmin: a.xmin, xmax: a.xmax, ymin: a.ymin, ymax: a.ymax };
+    if (p.kind === 'line') return !!M.clipLine(p.a, p.b, p.c, box);
+    if (p.kind === 'points') return p.points.some(function (q) { return q.x >= a.xmin && q.x <= a.xmax && q.y >= a.ymin && q.y <= a.ymax; });
+    return M.sampleCurve(p, box, 200).some(function (run) { return run.some(function (q) { return q[1] >= a.ymin && q[1] <= a.ymax; }); });
+  }
+
+  function addItem() {
+    var inp = $('gInput'), raw = inp.value.trim(), p;
+    if (!raw) { addMsg('Type something to graph first, like y = 2x + 3 or (3, 5).', true); return; }
+    try { p = M.parseGraphInput(raw); } catch (e) {
+      addMsg((e.friendly ? e.message : 'I couldn\'t read that.') + ' Examples: y = 2x + 3,  x = -2,  3x - y = -6,  (3, 5)', true);
+      return;
+    }
+    if (G.ws.items.length >= 12) { addMsg('That\'s a lot! Take something off the list first (12 at most).', true); return; }
+    var item = { input: raw, label: $('gLabel').value.trim().slice(0, 40), color: M.nextColor(G.ws.items) };
+    G.ws.items.push(item);
+    inp.value = ''; $('gLabel').value = '';
+    var notes = [];
+    if (p.note) notes.push('I graphed it with ' + p.note + '.');
+    if (!isVisible(p, G.axes)) notes.push('It\'s outside this graph window, so change the axes to see it.');
+    addMsg(notes.length ? 'Added! ' + notes.join(' ') : '', false);
+    saveWs(); renderList(); drawScreen();
+  }
+
+  function renderList() {
+    var ul = $('gList');
+    ul.innerHTML = '';
+    if (!G.ws.items.length) {
+      ul.appendChild(el('li', { class: 'empty', text: 'Nothing on the graph yet. Try y = 2x + 3 or (3, 5).' }));
+      return;
+    }
+    withParsed(G.ws.items).forEach(function (it, i) {
+      var kind = it.p ? (it.p.kind === 'points' ? (it.p.points.length === 1 ? 'point' : it.p.points.length + ' points') : it.p.kind === 'curve' ? 'curve' : 'line') : 'can\'t read this one';
+      ul.appendChild(el('li', null, [
+        el('span', { class: 'swatch', style: 'background:' + it.color }),
+        el('div', { class: 'txt' }, [el('b', { text: itemName(it) }), el('small', { text: (it.label ? it.label + ' · ' : '') + kind + ' · ' + M.colorName(it.color) })]),
+        el('button', { type: 'button', class: 'rm', 'aria-label': 'Remove ' + itemName(it), text: '✕', onclick: function () {
+          G.ws.items.splice(i, 1); saveWs(); renderList(); drawScreen();
+        } })
+      ]));
+    });
+  }
+
+  function drawScreen() {
+    if (!gReady || currentTool !== 'graph' || toolEl.hidden || !G.ws) return;
+    var c = $('gCanvas'), wrap = $('gWrap');
+    var cssW = Math.max(220, Math.floor(wrap.clientWidth - 4));
+    var cssH = Math.round(Math.min(cssW * (window.innerWidth >= 760 ? 0.9 : 1), Math.max(240, window.innerHeight * 0.6)));
+    var dpr = Math.min(3, window.devicePixelRatio || 1);
+    c.style.height = cssH + 'px';
+    c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr);
+    var ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var fs = cssW < 400 ? 12 : 14;
+    G.view = drawGraph(ctx, cssW, cssH, G.axes, withParsed(G.ws.items), { font: fs, lineW: 3, dot: 6 });
+    var coord = $('gCoord');
+    if (G.tap && G.tap.x >= G.axes.xmin && G.tap.x <= G.axes.xmax && G.tap.y >= G.axes.ymin && G.tap.y <= G.axes.ymax) {
+      var X = G.view.sx(G.tap.x), Y = G.view.sy(G.tap.y);
+      ctx.strokeStyle = '#1d2433'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X, Y, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X - 14, Y); ctx.lineTo(X - 5, Y); ctx.moveTo(X + 5, Y); ctx.lineTo(X + 14, Y);
+      ctx.moveTo(X, Y - 14); ctx.lineTo(X, Y - 5); ctx.moveTo(X, Y + 5); ctx.lineTo(X, Y + 14); ctx.stroke();
+      coord.textContent = '📍 (' + uni(M.formatNumber(G.tap.x)) + ', ' + uni(M.formatNumber(G.tap.y)) + ')';
+      coord.hidden = false;
+    } else coord.hidden = true;
+  }
+
+  function onCanvasTap(e) {
+    var v = G.view;
+    if (!v) return;
+    var r = $('gCanvas').getBoundingClientRect(), X = e.clientX - r.left, Y = e.clientY - r.top, a = G.axes;
+    if (X < v.left - 2 || X > v.left + v.pw + 2 || Y < v.top - 2 || Y > v.top + v.ph + 2) { G.tap = null; drawScreen(); return; }
+    var x = a.xmin + (X - v.left) / v.pw * (a.xmax - a.xmin), y = a.ymax - (Y - v.top) / v.ph * (a.ymax - a.ymin);
+    var gx = Math.round(x / a.xstep) * a.xstep, gy = Math.round(y / a.ystep) * a.ystep;
+    var rx = Math.min(12, 0.3 * v.pw * a.xstep / (a.xmax - a.xmin)), ry = Math.min(12, 0.3 * v.ph * a.ystep / (a.ymax - a.ymin));
+    if (Math.abs(v.sx(gx) - X) <= rx && Math.abs(v.sy(gy) - Y) <= ry) { x = gx; y = gy; }   // snap to a grid corner
+    else {
+      var dx = Math.max(0, Math.min(4, Math.floor(-Math.log((a.xmax - a.xmin) / v.pw) / Math.LN10)));
+      var dy = Math.max(0, Math.min(4, Math.floor(-Math.log((a.ymax - a.ymin) / v.ph) / Math.LN10)));
+      x = Math.round(x * Math.pow(10, dx)) / Math.pow(10, dx); y = Math.round(y * Math.pow(10, dy)) / Math.pow(10, dy);
+    }
+    G.tap = { x: Math.max(a.xmin, Math.min(a.xmax, x)), y: Math.max(a.ymin, Math.min(a.ymax, y)) };
+    drawScreen();
+  }
+
+  function useGraph() {
+    if (!G.part) return;
+    if (!G.axesOk) { addMsg('Fix the axes first (see the red message).', true); return; }
+    if (!G.ws.items.length) { addMsg('Add at least one line or point first, then press the green button.', true); return; }
+    var pid = G.part.id;
+    if (!graphs[pid] && pictureCount() >= MAX_PICTURES) { closeTool(); tooManyPictures(); return; }
+    graphs[pid] = {
+      axes: { xmin: G.axes.xmin, xmax: G.axes.xmax, xstep: G.axes.xstep, ymin: G.axes.ymin, ymax: G.axes.ymax, ystep: G.axes.ystep },
+      items: G.ws.items.map(function (it) { return { input: it.input, label: it.label || '', color: it.color }; }),
+      savedAt: new Date().toISOString()
+    };
+    saveDraftSafe();
+    if (paperRefresh[pid]) paperRefresh[pid]();
+    closeTool();
+    var att = $('graph-att-' + pid);
+    if (att) { att.scrollIntoView({ block: 'center' }); flashEl(att.querySelector('img') || att); }
+  }
+
+  /* ------------------------------ calculator ------------------------------ */
+  var C = { expr: '', done: false, ans: '', frac: null, error: '' };
+  var calcBuilt = false;
+  var CALC_KEYS = [
+    ['C', 'clear', 'fn', 'Clear'], ['⌫', 'back', 'fn', 'Backspace'], ['(', '(', ''], [')', ')', ''], ['÷', '÷', 'op', 'Divide'],
+    ['x²', '²', '', 'Squared'], ['√', '√(', '', 'Square root'], ['^', '^', '', 'Power'], ['π', 'π', '', 'Pi'], ['×', '×', 'op', 'Times'],
+    ['7', '7', 'd'], ['8', '8', 'd'], ['9', '9', 'd'], ['±', 'neg', '', 'Change sign'], ['−', '−', 'op', 'Minus'],
+    ['4', '4', 'd'], ['5', '5', 'd'], ['6', '6', 'd'], ['a/b', '/', 'small', 'Fraction bar'], ['+', '+', 'op', 'Plus'],
+    ['1', '1', 'd'], ['2', '2', 'd'], ['3', '3', 'd'], ['.', '.', 'd', 'Decimal point'], ['=', 'eq', 'eq', 'Equals'],
+    ['0', '0', 'd wide'], ['Ans', 'ans', 'small wide', 'Last answer']
+  ];
+  var calcBtns = {};
+
+  function buildCalc() {
+    if (calcBuilt) return;
+    calcBuilt = true;
+    CALC_KEYS.forEach(function (k) {
+      var b = el('button', { type: 'button', class: k[2], text: k[0], 'aria-label': k[3] || k[0] });
+      b.addEventListener('click', function () { calcPress(k[1]); });
+      calcBtns[k[1]] = b;
+      $('cKeys').appendChild(b);
+    });
+    $('cCopy').addEventListener('click', function () { var t = calcOutput(); if (t) copyText(t, $('cCopy'), '📋 Copy'); });
+    $('cInsert').addEventListener('click', function () {
+      var t = calcOutput();
+      if (t && !insertIntoAnswer(t)) renderCalc();
+    });
+  }
+  function ansForExpr() {
+    if (!C.ans) return '';
+    var a = uni(C.ans);
+    return C.ans.charAt(0) === '-' ? '(' + a + ')' : a;
+  }
+  function calcPress(k) {
+    C.error = '';
+    if (k === 'clear') { C.expr = ''; C.done = false; }
+    else if (k === 'back') { if (C.done) C.done = false; else C.expr = C.expr.slice(0, -1); }
+    else if (k === 'eq') {
+      if (!C.expr) return renderCalc();
+      var open = (C.expr.match(/\(/g) || []).length - (C.expr.match(/\)/g) || []).length;
+      try {
+        var r = M.calc(C.expr);
+        for (var i = 0; i < open; i++) C.expr += ')';
+        C.ans = r.text; C.frac = r.fraction; C.done = true;
+      } catch (e) { C.error = e.friendly ? e.message : 'Hmm, check that again.'; C.done = false; }
+    } else if (k === 'neg') {
+      if (C.done) { C.expr = C.ans.charAt(0) === '-' ? C.ans.slice(1) : '\u2212' + C.ans; C.expr = uni(C.expr); C.done = false; }
+      else {
+        var m = /(\d+\.?\d*|\.\d+|π)$/.exec(C.expr);
+        if (!m) C.expr += '\u2212';
+        else {
+          var before = C.expr.slice(0, m.index), num = m[0];
+          if (/\(\u2212$/.test(before)) C.expr = before.slice(0, -2) + num;
+          else if (/(^|[×÷\/^(])\u2212$/.test(before)) C.expr = before.slice(0, -1) + num;
+          else if (before === '' || /[×÷\/^(]$/.test(before)) C.expr = before + '\u2212' + num;
+          else C.expr = before + '(\u2212' + num;
+        }
+      }
+    } else {
+      var s = k === 'ans' ? ansForExpr() : k;
+      if (!s) return renderCalc();
+      if (C.done) { C.expr = /^[+\u2212×÷\/^²]/.test(s) ? ansForExpr() : ''; C.done = false; }
+      if (C.expr.length < 150) C.expr += s;
+    }
+    renderCalc();
+  }
+  function calcPreview() {
+    if (!C.expr || C.done) return null;
+    try { return M.calc(C.expr); } catch (e) { return null; }
+  }
+  /** What Copy / Put-in-my-answer use: the answer after "=", or the live preview. Plain "-" minus. */
+  function calcOutput() {
+    if (C.done) return C.ans;
+    var p = calcPreview();
+    return p ? p.text : '';
+  }
+  function renderCalc() {
+    var res = $('cRes'), pv = calcPreview();
+    $('cExpr').textContent = C.expr ? C.expr + (C.done ? ' =' : '') : '';
+    res.className = 'cres';
+    if (C.error) { res.textContent = '⚠️ ' + C.error; res.classList.add('err'); }
+    else if (C.done) res.textContent = uni(C.ans);
+    else if (pv && /[^\d.]/.test(C.expr)) { res.textContent = '= ' + uni(pv.text); res.classList.add('preview'); }
+    else res.textContent = C.expr ? '' : '0';
+    var frac = C.done ? C.frac : (pv && !C.error ? pv.fraction : null);
+    $('cFrac').textContent = frac ? '= ' + uni(frac) + ' as a fraction' : '';
+    var out = calcOutput(), target = lastField && document.body.contains(lastField) ? fieldInfo[lastField.id.slice(2)] : '';
+    $('cCopy').disabled = !out;
+    $('cInsert').disabled = !out || !target;
+    $('cHint').textContent = target ? 'Put in my answer → ' + target
+      : 'Tip: tap an answer box first, then open the calculator, and "Put in my answer" will type the result there for you.';
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (toolEl.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeTool(); return; }
+    if (currentTool !== 'calc' || e.ctrlKey || e.metaKey || e.altKey) return;
+    var a = document.activeElement;
+    if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type === 'text'))) return;
+    var map = { '+': '+', '-': '\u2212', '*': '×', 'x': '×', 'X': '×', '/': '/', '÷': '÷', '^': '^', '(': '(', ')': ')', '.': '.', ',': '.',
+      'p': 'π', 'P': 'π', 'r': '√(', 's': '√(', '²': '²', 'Enter': 'eq', '=': 'eq', 'Backspace': 'back', 'Delete': 'clear', 'c': 'clear', 'C': 'clear' };
+    var k = /^[0-9]$/.test(e.key) ? e.key : map[e.key];
+    if (!k) return;
+    e.preventDefault();
+    calcPress(k);
+    var b = calcBtns[k === '/' ? '/' : k];
+    if (b) { b.classList.add('hit'); setTimeout(function () { b.classList.remove('hit'); }, 120); }
+  });
+
+  document.getElementById('submitBtn').addEventListener('click', trySubmit);
+  document.getElementById('overlay').addEventListener('click', function (e) { if (e.target.id === 'overlay') closeModal(); });
+  render();
+  // Handy for local tests only (dev/browser-test.js); harmless on the live page.
+  window.__rio = { buildSubmission: buildSubmission, openGraph: openGraph, view: function () { return G.view; } };
+};
+</script>
+<script>
+/* Loader: reads ?date=YYYY-MM-DD (no date = today in Tokyo, or the newest test before it), fetches the
+   questions-only test from Apps Script without cookies, then starts the page. */
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  function tokyoToday() {
+    try {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    } catch (e) { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
+  }
+  var requested = '';
+  try { requested = (new URLSearchParams(location.search).get('date') || '').trim(); } catch (e) {}
+  var baseUrl = location.origin + location.pathname;
+  function node(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
+  function showLoading() {
+    app.innerHTML = '';
+    var box = node('div', 'loading'); box.appendChild(node('div', 'spin')); box.appendChild(node('div', '', 'Loading your math practice…'));
+    app.appendChild(box);
+  }
+  function showError(msg) {
+    app.innerHTML = '';
+    var h = node('header', 'top'); h.appendChild(node('h1', '', 'Math practice')); app.appendChild(h);
+    var c = node('div', 'card error');
+    c.appendChild(node('p', '', '😕 ' + msg));
+    c.appendChild(node('p', 'muted', 'Check the internet connection and try again.'));
+    var b = node('button', 'btn', 'Try again'); b.type = 'button'; b.addEventListener('click', load);
+    var a = node('div', 'actions'); a.style.margin = '6px 0 14px'; a.appendChild(b); c.appendChild(a);
+    app.appendChild(c);
+  }
+  function load() {
+    showLoading();
+    var url = RIO_API_URL + '?format=json' + (requested ? '&date=' + encodeURIComponent(requested) : '');
+    rioFetchJSON(url, { method: 'GET' }, 45000).then(function (res) {
+      if (!res || (!res.test && !res.error)) throw new Error('The math server sent something unexpected.');
+      DATA = {
+        test: res.test || null,
+        error: res.error || null,
+        requested: requested,
+        today: res.today || tokyoToday(),
+        recent: Array.isArray(res.recent) ? res.recent : [],
+        baseUrl: baseUrl
+      };
+      document.title = DATA.test ? ('Math practice ' + DATA.test.date) : 'Math practice';
+      app.innerHTML = '';
+      window.__rioStart();
+    }).catch(function (e) { showError(String(e && e.message || e)); });
+  }
+  load();
+})();
+</script>
+</body>
+</html>
