@@ -340,6 +340,31 @@
   .rio-ledger li small { grid-column: 2; color: var(--muted); font-size: .75em; }
   .rio-ledger .plus { color: var(--good); font-size: 1.1em; } .rio-ledger .minus { color: #b42318; font-size: 1.1em; }
   .rio-ledger .why { overflow-wrap: anywhere; }
+  .rio-redeem-open { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 0 0 10px; }
+  .rio-wait-note { margin: 0 0 12px; padding: 8px 12px; border-radius: 12px; background: #fff8e6; border: 2px solid #f6d58a; font-weight: 700; font-size: .9em; }
+  .rio-redeem-rate { text-align: center; font-size: 1.5em; font-weight: 900; color: #b8860b; margin: 2px 0 4px; }
+  .rio-redeem-help { margin: 0 0 12px; color: var(--muted); font-size: .92em; text-align: center; }
+  .rio-redeem-msg { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: #eafaf1; border: 2px solid #9fdcb8; font-weight: 700; }
+  .rio-redeem-form { padding: 14px; margin: 0 0 14px; }
+  .rio-redeem-avail { font-weight: 800; margin-bottom: 8px; }
+  .rio-redeem-label { display: block; font-size: .85em; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+  .rio-redeem-row { display: flex; align-items: center; gap: 10px; }
+  .rio-redeem-row input { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 1.4em; font-weight: 800; padding: 10px 12px; border: 2px solid var(--line); border-radius: 14px; }
+  .rio-redeem-row input:focus { outline: none; border-color: var(--good); box-shadow: 0 0 0 4px rgba(31,157,85,.15); }
+  .rio-redeem-eq { flex: 0 0 auto; font-size: 1.5em; font-weight: 900; color: var(--good); white-space: nowrap; }
+  .rio-quicks { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .rio-quick { font: inherit; font-weight: 800; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 2px solid #c5d3fb; background: #eef2ff; color: var(--accent-dark); cursor: pointer; }
+  .rio-redeem-err { min-height: 1.2em; margin: 6px 0; color: #b42318; font-weight: 700; font-size: .9em; }
+  .rio-redeem-send { width: 100%; }
+  .rio-redeem-send[disabled] { opacity: .45; box-shadow: none; cursor: default; }
+  .rio-redeem-h { font-size: 1em; margin: 16px 0 8px; }
+  .rio-redeem-item { border: 2px solid #f6d58a; background: #fffbef; border-radius: 16px; padding: 10px 14px; margin-bottom: 10px; }
+  .rio-redeem-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .rio-redeem-top b { font-size: 1.4em; }
+  .rio-redeem-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .rio-redeem-btns .rio-got { flex: 2 1 0; padding: 12px 10px; }
+  .rio-redeem-btns .rio-cancel { flex: 1 1 0; padding: 12px 10px; }
+  .rio-redeem-done .muted { color: var(--muted); }
   .rio-scores li { padding: 10px 0; border-top: 1px solid var(--line); }
   .rio-scores .top { display: flex; justify-content: space-between; gap: 10px; }
   .rio-scores .track { height: 12px; background: #e3e8f5; border-radius: 99px; overflow: hidden; margin: 4px 0; }
@@ -529,8 +554,21 @@
             ok(res);
           })
           .catch(function (e) { fail(e); });
-      }
+      },
+      /* Redeeming tokens for yen: ask (redeem), "I got the yen" (redeemDone), cancel a waiting one (redeemCancel).
+         The server checks every amount against his balance; the page only sends a number or a request id. */
+      rioRedeem: function (tokens) { rioRedeemPost({ action: 'redeem', tokens: tokens }); },
+      rioRedeemDone: function (id) { rioRedeemPost({ action: 'redeemDone', id: id }); },
+      rioRedeemCancel: function (id) { rioRedeemPost({ action: 'redeemCancel', id: id }); }
     };
+    function rioRedeemPost(body) {
+      rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }, 30000)
+        .then(function (res) {
+          if (!res || res.ok !== true) throw new Error((res && res.error) || 'The math server said no.');
+          ok(res);
+        })
+        .catch(function (e) { fail(e); });
+    }
     return r;
   } });
 </script>
@@ -1280,10 +1318,126 @@ var RioInbox = (function () {
         el('small', { text: when(x.at) })
       ]);
     });
+    var rd = data.redeem, waiting = rd ? (rd.list || []).filter(function (r) { return r.status === 'pending'; }) : [];
     frame('🪙 My tokens', [
       el('div', { class: 'rio-bigcount' }, [el('div', { class: 'num', text: String(t.balance || 0) }), el('div', { class: 'muted', text: (t.balance === 1 ? 'token' : 'tokens') })]),
+      // Redeem is only offered when the server knows about it (an older backend has no "redeem" block).
+      rd ? el('button', { type: 'button', class: 'btn good rio-redeem-open', id: 'rioRedeemBtn', onclick: showRedeem }, ['💴 Redeem tokens for yen',
+        waiting.length ? el('b', { class: 'rio-badge', text: String(waiting.length) }) : null]) : null,
+      rd && waiting.length ? el('p', { class: 'rio-wait-note', id: 'rioWaitNote', text: '⏳ Waiting for Dad: ' + waiting.map(function (r) { return yen(r.yen); }).join(', ') }) : null,
       rows.length ? el('ul', { class: 'rio-ledger' }, rows) : el('p', { class: 'muted', text: 'No tokens yet. Keep going!' })
     ]);
+  }
+
+  /* ---- Redeem tokens for yen (1 token = 1 yen). The server checks every number; this page only asks. */
+  function yen(n) { return '¥' + Number(n || 0).toLocaleString('en-US'); }
+  function refresh(then) {
+    api('rioData', [], function (res) {
+      if (res && res.ok === true && res.api === 'rio') { data = res; drawStrip(); }
+      then();
+    }, function () { then(); });
+  }
+  function showRedeem(note) {
+    var rd = data.redeem || { yenPerToken: 1, available: 0, list: [] };
+    var per = Number(rd.yenPerToken) || 1, avail = Math.max(0, Math.floor(Number(rd.available) || 0));
+    var list = rd.list || [];
+    var waiting = list.filter(function (r) { return r.status === 'pending'; });
+    var done = list.filter(function (r) { return r.status !== 'pending'; }).slice(0, 8);
+    var full = waiting.length >= (Number(rd.maxPending) || 3);
+    var msg = el('p', { class: 'rio-redeem-msg', id: 'rioRedeemMsg', role: 'status', text: typeof note === 'string' ? note : '' });
+    var body = [
+      el('div', { class: 'rio-redeem-rate', text: '1 token = ' + yen(per) }),
+      el('p', { class: 'rio-redeem-help', text: 'Trade your tokens for real yen. Dad gets a message. When he gives you the yen, press "I got the yen" and the tokens come off.' })
+    ];
+    if (typeof note === 'string' && note) body.push(msg);
+    if (waiting.length) {
+      body.push(el('h3', { class: 'rio-redeem-h', text: '⏳ Waiting for Dad' }));
+      waiting.forEach(function (r) {
+        var got = el('button', { type: 'button', class: 'btn good rio-got', text: 'I got the yen ✅' });
+        var cancel = el('button', { type: 'button', class: 'btn secondary rio-cancel', text: 'Cancel' });
+        var line = el('p', { class: 'rio-redeem-err' });
+        got.addEventListener('click', function () {
+          var sure = true;
+          try { sure = window.confirm('Did Dad give you ' + yen(r.yen) + '? Then ' + r.tokens + ' tokens come off your balance.'); } catch (e) {}
+          if (!sure) return;
+          got.setAttribute('disabled', ''); cancel.setAttribute('disabled', ''); got.textContent = 'Saving…';
+          api('rioRedeemDone', [r.id], function (res) {
+            if (!res || res.ok !== true) { line.textContent = '😕 ' + ((res && res.error) || 'Try again.'); got.removeAttribute('disabled'); cancel.removeAttribute('disabled'); got.textContent = 'I got the yen ✅'; return; }
+            refresh(function () { showRedeem('🎉 Done! You got ' + yen(r.yen) + ' for ' + r.tokens + ' tokens.'); });
+          }, function (e) { line.textContent = '😕 ' + (e && e.message || 'Try again.'); got.removeAttribute('disabled'); cancel.removeAttribute('disabled'); got.textContent = 'I got the yen ✅'; });
+        });
+        cancel.addEventListener('click', function () {
+          var sure = true;
+          try { sure = window.confirm('Cancel asking for ' + yen(r.yen) + '? Your tokens stay.'); } catch (e) {}
+          if (!sure) return;
+          got.setAttribute('disabled', ''); cancel.setAttribute('disabled', '');
+          api('rioRedeemCancel', [r.id], function (res) {
+            if (!res || res.ok !== true) { line.textContent = '😕 ' + ((res && res.error) || 'Try again.'); got.removeAttribute('disabled'); cancel.removeAttribute('disabled'); return; }
+            refresh(function () { showRedeem('Cancelled. Your ' + r.tokens + ' tokens are free again.'); });
+          }, function (e) { line.textContent = '😕 ' + (e && e.message || 'Try again.'); got.removeAttribute('disabled'); cancel.removeAttribute('disabled'); });
+        });
+        body.push(el('div', { class: 'rio-redeem-item pending', 'data-id': r.id }, [
+          el('div', { class: 'rio-redeem-top' }, [el('b', { text: yen(r.yen) }), el('span', { text: r.tokens + ' token' + (r.tokens === 1 ? '' : 's') })]),
+          el('small', { class: 'muted', text: 'Asked ' + when(r.requestedAt) }),
+          el('div', { class: 'rio-redeem-btns' }, [got, cancel]),
+          line
+        ]));
+      });
+    }
+    if (waiting.length) body.push(el('h3', { class: 'rio-redeem-h', text: 'Ask for more' }));
+    if (!avail) {
+      body.push(el('p', { class: 'muted', id: 'rioRedeemNone', text: waiting.length ? 'All your tokens are waiting for Dad right now.' : 'You need at least 1 token to redeem. Keep going!' }));
+    } else if (full) {
+      body.push(el('p', { class: 'muted', id: 'rioRedeemFull', text: 'You have ' + waiting.length + ' requests waiting. Wait for Dad, or cancel one, before asking again.' }));
+    } else {
+      var amt = el('input', { type: 'number', id: 'rioRedeemAmt', min: '1', max: String(avail), step: '1', inputmode: 'numeric', placeholder: 'How many?', 'aria-label': 'How many tokens' });
+      var eq = el('div', { class: 'rio-redeem-eq', id: 'rioRedeemYen', text: '= ' + yen(0) });
+      var send = el('button', { type: 'button', class: 'btn good rio-redeem-send', id: 'rioRedeemSend', disabled: '', text: 'Ask Dad' });
+      var err = el('p', { class: 'rio-redeem-err', id: 'rioRedeemErr' });
+      var val = function () { var v = String(amt.value || '').trim(); return /^\d+$/.test(v) ? parseInt(v, 10) : NaN; };
+      var update = function () {
+        var n = val(), good = n >= 1 && n <= avail;
+        eq.textContent = '= ' + yen(good ? n * per : 0);
+        err.textContent = amt.value === '' || good ? '' : (n > avail ? 'You can redeem up to ' + avail + '.' : 'Type a whole number, like 50.');
+        send.textContent = good ? 'Ask Dad for ' + yen(n * per) : 'Ask Dad';
+        if (good) send.removeAttribute('disabled'); else send.setAttribute('disabled', '');
+      };
+      amt.addEventListener('input', update);
+      var quick = [100, 500, 1000].filter(function (q) { return q < avail; }).map(function (q) {
+        return el('button', { type: 'button', class: 'rio-quick', text: String(q), onclick: function () { amt.value = String(q); update(); } });
+      });
+      quick.push(el('button', { type: 'button', class: 'rio-quick', id: 'rioRedeemAll', text: 'All ' + avail, onclick: function () { amt.value = String(avail); update(); } }));
+      send.addEventListener('click', function () {
+        var n = val();
+        if (!(n >= 1 && n <= avail)) return;
+        send.setAttribute('disabled', ''); send.textContent = 'Sending…'; err.textContent = '';
+        api('rioRedeem', [n], function (res) {
+          if (!res || res.ok !== true) { err.textContent = '😕 ' + ((res && res.error) || 'That did not work. Try again.'); update(); return; }
+          refresh(function () { showRedeem('📨 Sent! Dad got a message about ' + yen(res.yen) + '. When he gives you the yen, press "I got the yen".'); });
+        }, function (e) { err.textContent = '😕 ' + (e && e.message || 'That did not work. Try again.'); update(); });
+      });
+      body.push(el('div', { class: 'card rio-redeem-form' }, [
+        el('div', { class: 'rio-redeem-avail', id: 'rioRedeemAvail', text: 'You can redeem up to ' + avail + ' token' + (avail === 1 ? '' : 's') + '.' }),
+        el('label', { class: 'rio-redeem-label', for: 'rioRedeemAmt', text: 'How many tokens?' }),
+        el('div', { class: 'rio-redeem-row' }, [amt, eq]),
+        el('div', { class: 'rio-quicks' }, quick),
+        err, send
+      ]));
+    }
+    if (done.length) {
+      body.push(el('h3', { class: 'rio-redeem-h', text: 'Done' }));
+      body.push(el('ul', { class: 'rio-ledger rio-redeem-done' }, done.map(function (r) {
+        var ok = r.status === 'complete';
+        return el('li', null, [
+          el('b', { class: ok ? 'plus' : 'muted', text: ok ? '✅' : '✖' }),
+          el('span', { class: 'why', text: ok ? 'Got ' + yen(r.yen) + ' for ' + r.tokens + ' tokens' : 'Cancelled ' + yen(r.yen) }),
+          el('small', { text: when(ok ? r.completedAt : (r.cancelledAt || r.requestedAt)) })
+        ]);
+      })));
+    }
+    frame('💴 Redeem tokens', body, showTokens);
+    var a = document.getElementById('rioRedeemAmt');
+    if (a && !note) try { a.focus({ preventScroll: true }); } catch (e) {}
   }
 
   function showShelf() {
@@ -1384,7 +1538,7 @@ var RioInbox = (function () {
     document.body.classList.add('tool-open');
     showCert(c);
   }
-  return { mount: mount, load: load, open: open, openCert: openCert, close: close, state: function () { return data; } };
+  return { mount: mount, load: load, open: open, openCert: openCert, close: close, redeem: function () { if (!data) return; ensureOverlay(); current = 'redeem'; overlay.hidden = false; document.body.classList.add('tool-open'); showRedeem(); }, state: function () { return data; } };
 })();
 /* ==== RIO-INBOX END ==== */
 </script>
