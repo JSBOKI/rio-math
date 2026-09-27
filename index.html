@@ -33,6 +33,17 @@
     display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15em; }
   .qtitle { font-weight: 800; font-size: 1.1em; line-height: 1.25; }
   .qprompt { margin: 6px 0 10px; }
+  body.is-bonus .qprompt, body.is-bonus .pprompt { white-space: pre-line; }
+  body.is-bonus header.top { background: linear-gradient(135deg, #f59e0b, #7b5cff); }
+  .bonus-summary { border: 2px dashed var(--accent); background: #f4f7ff; padding-bottom: 14px; }
+  .bonus-summary .bonus-big { font-weight: 900; font-size: 1.15em; margin: 0 0 4px; }
+  .bonus-summary .bonus-res { font-weight: 800; margin: 6px 0 2px; }
+  .bonus-summary .bonus-line { color: var(--muted); font-weight: 600; margin-top: 4px; }
+  .bonus-summary .bonus-finished { margin-top: 8px; font-weight: 800; color: #145c33; }
+  .bonus-badge { margin-left: auto; flex: 0 0 auto; font-weight: 800; font-size: .8em; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+  .bonus-badge.st-correct { background: #e7f8ee; color: #145c33; border: 2px solid #8fd3ab; }
+  .bonus-badge.st-wrong { background: #fdecec; color: #9b1c1c; border: 2px solid #f3b4b4; }
+  section.card.bonus-locked input, section.card.bonus-locked textarea { background: #f3f4f7; }
   .part { border-top: 2px dashed var(--line); padding: 14px 0 12px; }
   .part:first-of-type { border-top: none; }
   .plabel { display: inline-block; min-width: 38px; padding: 2px 10px; margin-right: 6px; border-radius: 10px;
@@ -277,6 +288,17 @@
   .home-test-top b { font-size: .82em; }
   .home-test-title { font-weight: 800; line-height: 1.25; }
   .home-test-skills { font-size: .75em; color: var(--muted); margin-top: 2px; }
+  .home-bonus { border: 2px dashed #f59e0b; background: #fffaf0; margin-top: 14px; }
+  .home-bonus .lead { margin: 0 0 8px; font-size: .88em; color: var(--muted); }
+  .home-bonus-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; color: var(--ink);
+    background: #fff; border: 2px solid #f6d58a; border-radius: 16px; padding: 10px 12px; margin: 0 0 8px; cursor: pointer; touch-action: manipulation; }
+  .home-bonus-main { flex: 1; min-width: 0; }
+  .home-bonus-main .t { font-weight: 800; }
+  .home-bonus-main .s { font-size: .8em; color: var(--muted); }
+  .home-bonus-pill { flex: 0 0 auto; font-size: .78em; font-weight: 800; border-radius: 999px; padding: 4px 10px; white-space: nowrap; color: #fff; background: #f59e0b; }
+  .home-bonus-pill.st-sent { background: #d97706; }
+  .home-bonus-pill.st-part { background: #3867ff; }
+  .home-bonus-pill.st-done { background: #1f9d55; }
   .home-pill { flex: 0 0 auto; font-size: .72em; font-weight: 800; color: #fff; background: #8b93a3; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
   .home-pill.st-awaiting { background: #d97706; }
   .home-pill.st-missed { background: #8b93a3; }
@@ -352,14 +374,14 @@
 <div class="bar" id="bar" hidden>
   <div class="bar-inner">
     <div class="tools" role="group" aria-label="Math tools">
-      <button class="tool-btn" id="openGraphBtn" type="button">📈 Graph</button>
-      <button class="tool-btn" id="openCalcBtn" type="button">🧮 Calculator</button>
+      <button class="tool-btn" id="openGraphBtn" type="button">&#x1F4C8; Graph</button>
+      <button class="tool-btn" id="openCalcBtn" type="button">&#x1F9EE; Calculator</button>
     </div>
     <div class="progress">
       <div class="txt" id="progressTxt">0 answered</div>
       <div class="track"><div class="fill" id="progressFill"></div></div>
     </div>
-    <button class="btn" id="submitBtn" type="button">Submit ✈️</button>
+    <button class="btn" id="submitBtn" type="button">Submit &#x2708;&#xFE0F;</button>
   </div>
 </div>
 
@@ -369,10 +391,10 @@
   <div class="toolbox" role="dialog" aria-modal="true" aria-label="Math tools">
     <div class="toolhead">
       <div class="tabs" role="radiogroup" aria-label="Pick a tool">
-        <label class="tab"><input type="radio" name="tool" value="graph" id="tabGraph"><span>📈 Graph</span></label>
-        <label class="tab"><input type="radio" name="tool" value="calc" id="tabCalc"><span>🧮 Calculator</span></label>
+        <label class="tab"><input type="radio" name="tool" value="graph" id="tabGraph"><span>&#x1F4C8; Graph</span></label>
+        <label class="tab"><input type="radio" name="tool" value="calc" id="tabCalc"><span>&#x1F9EE; Calculator</span></label>
       </div>
-      <button type="button" class="close-x" id="toolClose" aria-label="Close">✕<span class="wide-only">&nbsp;Close</span></button>
+      <button type="button" class="close-x" id="toolClose" aria-label="Close">&#x2715;<span class="wide-only">&nbsp;Close</span></button>
     </div>
     <div class="toolbody" id="toolBody">
       <section id="graphTool" hidden>
@@ -392,7 +414,7 @@
               <div class="gmsg bad" id="gAxisMsg" role="alert" hidden></div>
               <div class="gbtns">
                 <button type="button" class="chip-btn" id="gSuggest" hidden>Use the suggested bounds</button>
-                <button type="button" class="chip-btn" id="gResetAxes">Reset to −10 … 10</button>
+                <button type="button" class="chip-btn" id="gResetAxes">Reset to &#x2212;10 &#x2026; 10</button>
               </div>
             </div>
             <div class="gsec">
@@ -400,7 +422,7 @@
               <input type="text" id="gInput" placeholder="y = 2x + 3  or  (3, 5)" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
               <div class="keys" id="gKeys"></div>
               <input type="text" id="gLabel" placeholder="Label (optional), like TechBus" maxlength="40" autocomplete="off" aria-label="Label (optional)">
-              <button type="button" class="btn add-btn" id="gAdd">＋ Add to graph</button>
+              <button type="button" class="btn add-btn" id="gAdd">&#xFF0B; Add to graph</button>
               <div class="gmsg" id="gAddMsg" role="status" hidden></div>
               <ul class="glist" id="gList"></ul>
               <button type="button" class="linkish" id="gClear">Clear all lines and points</button>
@@ -417,15 +439,15 @@
           </div>
           <div class="ckeys" id="cKeys"></div>
           <div class="cactions">
-            <button type="button" class="btn secondary" id="cCopy">📋 Copy</button>
-            <button type="button" class="btn" id="cInsert">⤵ Put in my answer</button>
+            <button type="button" class="btn secondary" id="cCopy">&#x1F4CB; Copy</button>
+            <button type="button" class="btn" id="cInsert">&#x2935; Put in my answer</button>
           </div>
           <div class="hint" id="cHint"></div>
         </div>
       </section>
     </div>
     <div class="toolfoot" id="gFoot" hidden>
-      <button type="button" class="btn good" id="gUse">✅ Use this graph in my answer</button>
+      <button type="button" class="btn good" id="gUse">&#x2705; Use this graph in my answer</button>
       <div class="muted" id="gFootNote"></div>
     </div>
   </div>
@@ -461,6 +483,17 @@
       submitAnswers: function (payload) {
         rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload) }, 180000)
+          .then(function (res) {
+            if (!res || res.ok !== true) throw new Error((res && res.error) || 'The math server said no.');
+            ok(res);
+          })
+          .catch(function (e) { fail(e); });
+      },
+      /* Bonus round answers: POST { action: 'bonus', bonusDate, answers, photos, ... } (text/plain, no cookies).
+         Saved as submissions/BONUS_<date>_... by Code.gs submitBonus_. */
+      submitBonus: function (payload) {
+        rioFetchJSON(RIO_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(Object.assign({}, payload || {}, { action: 'bonus' })) }, 180000)
           .then(function (res) {
             if (!res || res.ok !== true) throw new Error((res && res.error) || 'The math server said no.');
             ok(res);
@@ -547,7 +580,7 @@ var RioMath = (function () {
 
   /**
    * Safe recursive-descent parser (no eval, no Function constructor).
-   * Precedence: + -  <  * / and implicit multiplication (left to right, so 1/2x = (1/2)x)  <  unary -  <  ^ (right assoc)  <  ² ³
+   * Precedence: + -  <  * / and implicit multiplication (left to right, so 1/2x = (1/2)x)  <  unary -  <  ^ (right assoc)  <  \u00B2 \u00B3
    * opts.autoClose: missing ")" at the very end are OK (calculator style).
    */
   function parse(src, opts) {
@@ -708,7 +741,7 @@ var RioMath = (function () {
     return { value: v, text: text, fraction: fraction };
   }
 
-  /** A single number typed in a box: "-10", "1/2", "2.5", "−3". */
+  /** A single number typed in a box: "-10", "1/2", "2.5", "\u22123". */
   function evalNumber(src, what) {
     var s = normalize(src);
     if (!s) throw MathError((what || 'That') + ' is empty.');
@@ -1431,6 +1464,14 @@ var RioHome = (function () {
     }
     window.top.location.href = base + '?date=' + encodeURIComponent(date);
   }
+  function goBonus(date) {
+    if (!date) return;
+    var base = String(baseUrl || '').split('?')[0];
+    if (!base) {
+      try { base = location.origin + location.pathname; } catch (e) { base = ''; }
+    }
+    window.top.location.href = base + '?bonus=' + encodeURIComponent(date);
+  }
   function goQuiz(id) {
     if (!id) return;
     var base = String(baseUrl || '').split('?')[0];
@@ -1548,6 +1589,8 @@ var RioHome = (function () {
     }
     root.innerHTML = '';
     root.appendChild(hero(m));
+    var bc = bonusCard(m);
+    if (bc) root.appendChild(bc);
     root.appendChild(tiles(m));
     if (window.RioQuiz && RioQuiz.practiceCard) root.appendChild(RioQuiz.practiceCard(m, goQuiz));
     root.appendChild(calendar(m));
@@ -1582,6 +1625,43 @@ var RioHome = (function () {
       el('p', { class: 'home-date', text: prettyDate(m.today) || 'Ready to practice?' }),
       btn,
     ]);
+  }
+
+  /* Bonus rounds (make-up questions after a graded test). rio.bonus comes from api=rio: dates, counts, and each
+     item's status/points only. Shown while a round is open, and for 7 days after it is finished. */
+  function half(x) {
+    x = Math.round(Number(x || 0) * 100) / 100;
+    var w = Math.floor(x), f = Math.round((x - w) * 100) / 100;
+    return f === 0.5 ? ((w ? String(w) : '') + '½') : String(x);
+  }
+  function bonusCard(m) {
+    var list = (rio && Array.isArray(rio.bonus)) ? rio.bonus : [];
+    var day = m.today || today;
+    var show = list.filter(function (b) {
+      return b && b.date && b.count > 0 && (b.open || (day && b.date >= addDays(day, -7)));
+    }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    if (!show.length) return null;
+    var rows = show.map(function (b) {
+      var status, cls;
+      if (!b.open) { status = 'Done · +' + half(b.earned); cls = 'done'; }
+      else if (b.checked) { status = b.checked + '/' + b.count + ' checked · +' + half(b.earned); cls = 'part'; }
+      else if (b.submitted) { status = 'Sent ✓'; cls = 'sent'; }
+      else { status = 'Start →'; cls = 'start'; }
+      return el('button', { type: 'button', class: 'home-bonus-row', 'data-date': b.date,
+        'aria-label': 'Bonus round for ' + prettyDate(b.date) + ', ' + status,
+        onclick: function () { goBonus(b.date); } }, [
+        el('div', { class: 'home-bonus-main' }, [
+          el('div', { class: 't', text: 'For ' + prettyDate(b.date) }),
+          el('div', { class: 's', text: b.count + ' question' + (b.count === 1 ? '' : 's') + ' · up to +' + half(b.possible) + ' point' + (b.possible === 1 ? '' : 's') }),
+        ]),
+        el('span', { class: 'home-bonus-pill st-' + cls, text: status }),
+      ]);
+    });
+    var anyOpen = show.some(function (b) { return b.open && !b.submitted; });
+    return el('section', { class: 'home-card home-bonus', id: 'homeBonus' }, [
+      el('h2', { text: '⭐ Bonus round' }),
+      el('p', { class: 'lead', text: anyOpen ? 'Win back points on a test you already took. Each right answer adds +½ point.' : 'Your bonus answers are in. Dad checks them and your points show up here.' }),
+    ].concat(rows));
   }
 
   function tile(k, v, s, extra) {
@@ -3407,16 +3487,22 @@ window.__rioStart = function () {
   'use strict';
   var app = document.getElementById('app');
   var test = DATA.test;
+  // Bonus round (?bonus=DATE): the same page with a bonus paper (questions only) instead of a daily test. Its drafts and
+  // "sent" note are stored under "bonus-DATE" so they never mix with that day's test. It submits with submitBonus.
+  var isBonus = !!(DATA && DATA.mode === 'bonus');
+  var bonusState = isBonus ? (DATA.bonusState || null) : null;
+  var tag = test ? (isBonus ? 'bonus-' + test.date : test.date) : null;
+  var lockedQ = {};   // bonus question id -> true once Dad has checked it (status correct/wrong): its boxes are read-only
   var answers = {};   // fieldId -> string
   var photos = {};    // partId -> [dataUrl]
   var graphs = {};    // partId -> { axes, items: [{input, label, color}], savedAt }  (graph-tool graphs put in an answer)
   var scratchOn = {}; // partId -> true when that problem's scratch drawing should be sent as a picture
   var startedAt = new Date().toISOString();
-  var storeKey = test ? ('rio-math-draft-' + test.date) : null;
+  var storeKey = tag ? ('rio-math-draft-' + tag) : null;
   var M = RioMath;
   var MAX_PICTURES = 8;   // Code.gs keeps at most CONFIG.MAX_PHOTOS = 8 pictures per submission
   var partById = {};      // partId -> { part, q }
-  var fieldInfo = {};     // fieldId -> "1b · TechBus:"
+  var fieldInfo = {};     // fieldId -> "1b \u00B7 TechBus:"
   var paperRefresh = {};  // partId -> function that redraws the attached-graph preview
 
   function el(tag, attrs, children) {
@@ -3442,7 +3528,7 @@ window.__rioStart = function () {
   }
   function allFields() {
     var out = [];
-    (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) {
+    (test.questions || []).forEach(function (q) { if (lockedQ[q.id]) return; (q.parts || []).forEach(function (p) {
       fieldsForPart(p).forEach(function (f) { out.push(f); });
     }); });
     return out;
@@ -3490,7 +3576,7 @@ window.__rioStart = function () {
       if (f.label) wrap.appendChild(el('label', { for: inputId, text: f.label }));
       var isLong = f.type === 'long' || f.type === 'paper';
       var input = isLong
-        ? el('textarea', { id: inputId, rows: f.type === 'paper' ? '2' : '4', placeholder: f.type === 'paper' ? 'Anything you want to say about your graph' : 'Type your answer and show your work…' })
+        ? el('textarea', { id: inputId, rows: f.type === 'paper' ? '2' : '4', placeholder: f.type === 'paper' ? 'Anything you want to say about your graph' : 'Type your answer and show your work\u2026' })
         : el('input', { id: inputId, type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'Your answer' });
       if (f.type === 'paper') input.style.minHeight = '70px';
       input.value = answers[f.id] || '';
@@ -3517,7 +3603,7 @@ window.__rioStart = function () {
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         cb(c.toDataURL('image/jpeg', 0.8));
       };
-      img.onerror = function () { alertModal('😕', 'Hmm', 'That picture could not be opened. Try taking the photo again.'); };
+      img.onerror = function () { alertModal('\uD83D\uDE15', 'Hmm', 'That picture could not be opened. Try taking the photo again.'); };
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
@@ -3531,12 +3617,12 @@ window.__rioStart = function () {
     return n;
   }
   function tooManyPictures() {
-    alertModal('🖼️', 'That\'s a lot of pictures', 'You can send up to ' + MAX_PICTURES + ' pictures (photos, graphs, and scratch paper) at once. Remove one first.');
+    alertModal('\uD83D\uDDBC\uFE0F', 'That\'s a lot of pictures', 'You can send up to ' + MAX_PICTURES + ' pictures (photos, graphs, and scratch paper) at once. Remove one first.');
   }
 
   function paperEl(p) {
     var box = el('div', { class: 'paper' }, [
-      el('div', { class: 'big', text: '✏️ Do this one on graph paper, or use the graph tool.' }),
+      el('div', { class: 'big', text: '\u270F\uFE0F Do this one on graph paper, or use the graph tool.' }),
       el('div', { class: 'muted', text: 'Add a photo of your paper, or put your graph from the tool in your answer. (Optional)' })
     ]);
     var thumbs = el('div', { class: 'thumbs' });
@@ -3545,7 +3631,7 @@ window.__rioStart = function () {
       (photos[p.id] || []).forEach(function (src, i) {
         thumbs.appendChild(el('div', { class: 'thumb' }, [
           el('img', { src: src, alt: 'Photo ' + (i + 1) }),
-          el('button', { type: 'button', 'aria-label': 'Remove photo', text: '×', onclick: function () {
+          el('button', { type: 'button', 'aria-label': 'Remove photo', text: '\u00D7', onclick: function () {
             photos[p.id].splice(i, 1); saveDraftSafe(); drawThumbs();
           } })
         ]));
@@ -3563,8 +3649,8 @@ window.__rioStart = function () {
       });
     });
     box.appendChild(el('div', { class: 'paper-btns' }, [
-      el('button', { type: 'button', class: 'photo-btn graph', text: '📈 Open graph tool', onclick: function () { openGraph(p.id); } }),
-      el('label', { class: 'photo-btn' }, ['📷 Add a photo', fileInput])
+      el('button', { type: 'button', class: 'photo-btn graph', text: '\uD83D\uDCC8 Open graph tool', onclick: function () { openGraph(p.id); } }),
+      el('label', { class: 'photo-btn' }, ['\uD83D\uDCF7 Add a photo', fileInput])
     ]));
     var att = el('div', { class: 'graph-att', id: 'graph-att-' + p.id });
     function drawAttached() {
@@ -3573,12 +3659,12 @@ window.__rioStart = function () {
       if (!g) return;
       var src = null;
       try { src = graphPNG(g, graphTitle(p.id)); } catch (e) {}
-      att.appendChild(el('div', { class: 'att-head', text: '📈 Your graph is in your answer' }));
+      att.appendChild(el('div', { class: 'att-head', text: '\uD83D\uDCC8 Your graph is in your answer' }));
       if (src) att.appendChild(el('img', { src: src, alt: 'Your graph for ' + graphTitle(p.id) }));
       att.appendChild(el('div', { class: 'att-desc', text: M.describeGraph(g).split('\n').slice(1).join('\n') }));
       att.appendChild(el('div', { class: 'paper-btns' }, [
-        el('button', { type: 'button', class: 'photo-btn graph', text: '✏️ Change graph', onclick: function () { openGraph(p.id); } }),
-        el('button', { type: 'button', class: 'photo-btn', text: '🗑️ Take it out', onclick: function () {
+        el('button', { type: 'button', class: 'photo-btn graph', text: '\u270F\uFE0F Change graph', onclick: function () { openGraph(p.id); } }),
+        el('button', { type: 'button', class: 'photo-btn', text: '\uD83D\uDDD1\uFE0F Take it out', onclick: function () {
           delete graphs[p.id]; saveDraftSafe(); drawAttached();
         } })
       ]));
@@ -3604,8 +3690,8 @@ window.__rioStart = function () {
   }
   function scratchHeading(q, p) {
     var h = 'Question ' + q.number;
-    if (p && p.label) h += ' · ' + p.label;
-    if (q.title) h += ' — ' + q.title;
+    if (p && p.label) h += ' \u00B7 ' + p.label;
+    if (q.title) h += ' \u2014 ' + q.title;
     return h;
   }
   function scratchText(q, p) {
@@ -3618,11 +3704,11 @@ window.__rioStart = function () {
   }
   function scratchSlot(q, p) {
     var id = p ? p.id : ('q' + q.number);
-    var btn = el('button', { type: 'button', class: 'scratch-open', 'data-scratch': id, text: '📝 Scratch paper' });
+    var btn = el('button', { type: 'button', class: 'scratch-open', 'data-scratch': id, text: '\uD83D\uDCDD Scratch paper' });
     var row = el('div', { id: 'scratch-att-' + id });
     function paint() {
       var saved = test && RioScratch.has(test.date, id);
-      btn.textContent = saved ? '📝 Scratch paper · saved' : '📝 Scratch paper';
+      btn.textContent = saved ? '\uD83D\uDCDD Scratch paper \u00B7 saved' : '\uD83D\uDCDD Scratch paper';
       btn.classList.toggle('has', !!saved);
       row.innerHTML = '';
       row.className = '';
@@ -3631,7 +3717,7 @@ window.__rioStart = function () {
       var jpeg = null;
       try { jpeg = RioScratch.exportJpeg(test.date, id); } catch (e) {}
       row.className = 'scratch-att';
-      row.appendChild(el('div', { class: 'att-head', text: '📝 Scratch paper is in your answer' }));
+      row.appendChild(el('div', { class: 'att-head', text: '\uD83D\uDCDD Scratch paper is in your answer' }));
       if (jpeg) row.appendChild(el('img', { src: jpeg, alt: 'Scratch paper for ' + scratchHeading(q, p) }));
       row.appendChild(el('button', { type: 'button', class: 'photo-btn', text: 'Take it out', onclick: function () {
         delete scratchOn[id]; saveDraftSafe(); paint();
@@ -3675,13 +3761,21 @@ window.__rioStart = function () {
       return;
     }
     if (!test) {
-      app.appendChild(el('header', { class: 'top' }, [el('h1', { text: 'Math practice' })]));
+      var homeLink = DATA.baseUrl ? String(DATA.baseUrl).split('?')[0] : '';
+      app.appendChild(el('header', { class: 'top' }, [
+        isBonus && homeLink ? el('a', { class: 'back-home', href: homeLink, text: '\uD83C\uDFE0 Home' }) : null,
+        el('h1', { text: isBonus ? '\u2B50 Bonus round' : 'Math practice' })]));
       app.appendChild(el('div', { class: 'card error' }, [
-        el('p', { text: '😴 ' + (DATA.error || 'No test is ready yet.') }),
-        el('p', { class: 'muted', text: 'New tests show up every morning around 7:30. Check the link in today\'s email.' })
+        el('p', { text: '\uD83D\uDE34 ' + (DATA.error || (isBonus ? 'This bonus round is not ready yet.' : 'No test is ready yet.')) }),
+        el('p', { class: 'muted', text: isBonus ? 'Bonus rounds show up after Dad checks your test. Use the link in Dad\'s email, or try again a bit later.'
+          : 'New tests show up every morning around 7:30. Check the link in today\'s email.' })
       ]));
-      app.appendChild(otherDays());
+      if (!isBonus) app.appendChild(otherDays());
       return;
+    }
+    if (isBonus) {
+      document.body.classList.add('is-bonus');
+      ((bonusState && bonusState.items) || []).forEach(function (it) { if (it && (it.status === 'correct' || it.status === 'wrong')) lockedQ[it.id] = true; });
     }
     try {
       var saved = JSON.parse(load(storeKey) || 'null');
@@ -3691,21 +3785,22 @@ window.__rioStart = function () {
     (test.questions || []).forEach(function (q) { (q.parts || []).forEach(function (p) {
       partById[p.id] = { part: p, q: q };
       fieldsForPart(p).forEach(function (f) {
-        fieldInfo[f.id] = String(q.number) + (p.label || '') + (f.label ? ' · ' + f.label : '');
+        fieldInfo[f.id] = String(q.number) + (p.label || '') + (f.label ? ' \u00B7 ' + f.label : '');
       });
     }); });
     Object.keys(graphs).forEach(function (pid) { if (!partById[pid] || !graphs[pid] || !graphs[pid].axes) delete graphs[pid]; });
 
     var homeUrl = DATA.baseUrl ? String(DATA.baseUrl).split('?')[0] : '';
     app.appendChild(el('header', { class: 'top' }, [
-      homeUrl ? el('a', { class: 'back-home', href: homeUrl, text: '🏠 Home' }) : null,
-      el('h1', { text: test.title || 'Math practice' }),
-      el('div', { class: 'date', text: '📅 ' + prettyDate(test.date) }),
+      homeUrl ? el('a', { class: 'back-home', href: homeUrl, text: '\uD83C\uDFE0 Home' }) : null,
+      el('h1', { text: isBonus ? '\u2B50 Bonus round' : (test.title || 'Math practice') }),
+      el('div', { class: 'date', text: '\uD83D\uDCC5 ' + (isBonus ? 'For your test on ' : '') + prettyDate(test.date) }),
       test.instructions ? el('div', { class: 'instructions', text: test.instructions }) : null
     ]));
+    if (isBonus) app.appendChild(bonusSummary());
 
     app.appendChild(el('div', { class: 'sent-banner', id: 'sentBanner' }));
-    var last = load('rio-math-sent-' + test.date);
+    var last = load('rio-math-sent-' + tag);
     if (last) showSentBanner(last);
 
     var nameInput = el('input', { type: 'text', id: 'name', autocomplete: 'name', value: load('rio-math-name') || 'Rio' });
@@ -3716,8 +3811,9 @@ window.__rioStart = function () {
     ]), el('div', { style: 'height:10px' })]));
 
     (test.questions || []).forEach(function (q) {
-      var card = el('section', { class: 'card', id: 'q' + q.number }, [
-        el('div', { class: 'qhead' }, [el('div', { class: 'qnum', text: String(q.number) }), el('div', { class: 'qtitle', text: q.title || ('Question ' + q.number) })]),
+      var card = el('section', { class: 'card' + (lockedQ[q.id] ? ' bonus-locked' : ''), id: 'q' + q.number }, [
+        el('div', { class: 'qhead' }, [el('div', { class: 'qnum', text: String(q.number) }), el('div', { class: 'qtitle', text: q.title || ('Question ' + q.number) }),
+          isBonus ? bonusBadge(q) : null]),
         q.prompt ? el('div', { class: 'qprompt', text: q.prompt }) : null,
         table(q.table)
       ]);
@@ -3727,23 +3823,69 @@ window.__rioStart = function () {
           table(p.table)
         ]);
         partEl.appendChild(scratchSlot(q, p));
-        if (p.type === 'info') partEl.appendChild(el('div', { class: 'info', text: 'Nothing to type here — just read it.' }));
+        if (p.type === 'info') partEl.appendChild(el('div', { class: 'info', text: 'Nothing to type here \u2014 just read it.' }));
         if (p.type === 'paper') partEl.appendChild(paperEl(p));
         fieldsForPart(p).forEach(function (f) { partEl.appendChild(fieldEl(f)); });
         card.appendChild(partEl);
       });
       if (!(q.parts || []).length) card.appendChild(scratchSlot(q, null));
+      if (lockedQ[q.id]) Array.prototype.forEach.call(card.querySelectorAll('input, textarea, .choices button'), function (n) { n.disabled = true; });
       app.appendChild(card);
     });
-    app.appendChild(otherDays());
+    if (!isBonus) app.appendChild(otherDays());
     document.getElementById('bar').hidden = false;
+    if (isBonus && bonusState && bonusState.open === false) document.getElementById('submitBtn').hidden = true;
     updateProgress();
+  }
+
+  /* ---- bonus round helpers (statuses/points come from the server; answers never do) ---- */
+  function ptsText(x) {
+    x = Math.round(Number(x || 0) * 100) / 100;
+    var whole = Math.floor(x), frac = Math.round((x - whole) * 100) / 100;
+    if (frac === 0.5) return (whole ? String(whole) : '') + '\u00BD';
+    return String(x);
+  }
+  function bonusEach() { return Number(bonusState && bonusState.pointsEach) || Number(test && test.pointsEach) || 0.5; }
+  function bonusStatusOf(id) {
+    var it = ((bonusState && bonusState.items) || []).filter(function (x) { return x && x.id === id; })[0];
+    return it ? it.status : 'open';
+  }
+  function bonusBadge(q) {
+    var st = bonusStatusOf(q.id);
+    if (st === 'correct') return el('div', { class: 'bonus-badge st-correct', text: '\u2705 Right! +' + ptsText(bonusEach()) });
+    if (st === 'wrong') return el('div', { class: 'bonus-badge st-wrong', text: '\u274C Not quite' });
+    return null;
+  }
+  function whenText(iso) {
+    try {
+      return new Date(iso).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Tokyo' });
+    } catch (e) { return ''; }
+  }
+  function bonusSummary() {
+    var s = bonusState || {}, n = (test.questions || []).length, each = bonusEach();
+    var right = 0, wrong = 0;
+    (test.questions || []).forEach(function (q) { var st = bonusStatusOf(q.id); if (st === 'correct') right++; else if (st === 'wrong') wrong++; });
+    var open = n - right - wrong;
+    var kids = [el('div', { class: 'bonus-big', text: n + ' question' + (n === 1 ? '' : 's') + ' \u00B7 +' + ptsText(each) + ' point each' })];
+    if (right + wrong) {
+      kids.push(el('div', { class: 'bonus-res', id: 'bonusResult', text: '\u2705 ' + right + ' right (+' + ptsText(right * each) + ')' +
+        (wrong ? ' \u00B7 \u274C ' + wrong + ' not quite' : '') + (open ? ' \u00B7 \u23F3 ' + open + ' not checked yet' : '') }));
+      if (s.baseScore != null && s.scoreWithBonus != null) {
+        kids.push(el('div', { class: 'bonus-line', text: 'Your score for that test: ' + ptsText(s.baseScore) + ' \u2192 ' + ptsText(s.scoreWithBonus) + ' / ' + s.testTotal }));
+      }
+    } else if (s.submitted) {
+      kids.push(el('div', { class: 'bonus-line', id: 'bonusResult', text: '\u2705 Sent' + (s.submittedAt ? ' ' + whenText(s.submittedAt) : '') + '. Dad will check it soon.' }));
+    } else {
+      kids.push(el('div', { class: 'bonus-line', text: 'Get all ' + n + ' right for +' + ptsText(n * each) + ' point' + (n * each === 1 ? '' : 's') + '.' }));
+    }
+    if (s.open === false) kids.push(el('div', { class: 'bonus-finished', text: '\uD83C\uDF89 This bonus round is finished. Great job trying it!' }));
+    return el('div', { class: 'card bonus-summary', id: 'bonusSummary' }, kids);
   }
 
   function otherDays() {
     var dates = DATA.recent || [];
     if (dates.length < 2 && test) return el('div');
-    var sel = el('select', { 'aria-label': 'Other days' }, [el('option', { value: '', text: 'Pick a day…' })].concat(
+    var sel = el('select', { 'aria-label': 'Other days' }, [el('option', { value: '', text: 'Pick a day\u2026' })].concat(
       dates.map(function (d) { return el('option', { value: d, text: d + (test && d === test.date ? ' (this one)' : '') }); })));
     sel.addEventListener('change', function () {
       if (sel.value && DATA.baseUrl) window.top.location.href = DATA.baseUrl + '?date=' + encodeURIComponent(sel.value);
@@ -3780,7 +3922,7 @@ window.__rioStart = function () {
   function showSentBanner(when) {
     var b = document.getElementById('sentBanner');
     if (!b) return;
-    b.textContent = '✅ Sent at ' + when + '. You can fix answers and press Submit again — the newest one counts.';
+    b.textContent = '\u2705 Sent at ' + when + '. You can fix answers and press Submit again \u2014 the newest one counts.';
     b.classList.add('show');
   }
 
@@ -3789,7 +3931,7 @@ window.__rioStart = function () {
     if (c.blanks.length) {
       var first = c.blanks[0];
       openModal([
-        el('div', { class: 'emoji', text: '🤔' }),
+        el('div', { class: 'emoji', text: '\uD83E\uDD14' }),
         el('h2', { text: c.blanks.length + ' box' + (c.blanks.length === 1 ? ' is' : 'es are') + ' empty' }),
         el('p', { text: 'Do you want to go back and try them, or send it now?' }),
         el('div', { class: 'actions' }, [
@@ -3844,7 +3986,7 @@ window.__rioStart = function () {
 
   function doSubmit() {
     var btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = 'Sending…';
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
     var built = buildSubmission();
     var payload = {
       testDate: test.date,
@@ -3854,39 +3996,48 @@ window.__rioStart = function () {
       photos: built.photos,
       client: { userAgent: navigator.userAgent, startedAt: startedAt }
     };
-    google.script.run
+    if (isBonus) { payload.bonusDate = test.date; delete payload.testDate; }
+    var runner = google.script.run
       .withSuccessHandler(function (res) {
-        btn.disabled = false; btn.textContent = 'Submit ✈️';
+        btn.disabled = false; btn.textContent = 'Submit \u2708\uFE0F';
         var c = counts();
         var t = new Date();
         var when = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        store('rio-math-sent-' + test.date, when);
+        store('rio-math-sent-' + tag, when);
+        if (isBonus) {
+          bonusState = bonusState || { items: [] };
+          bonusState.submitted = true; bonusState.submittedAt = (res && res.submittedAt) || new Date().toISOString();
+          var oldSum = document.getElementById('bonusSummary');
+          if (oldSum) oldSum.parentNode.replaceChild(bonusSummary(), oldSum);
+        }
         showSentBanner(when);
         var savedPics = (res && res.photos) || 0;
         var nGraphs = Math.min(built.graphCount, savedPics);
         var nScratch = Math.min(built.scratchCount || 0, Math.max(0, savedPics - nGraphs));
         var nPhotos = Math.max(0, savedPics - nGraphs - nScratch);
-        var extra = (nGraphs ? ' · ' + nGraphs + ' graph' + (nGraphs === 1 ? '' : 's') : '')
-          + (nScratch ? ' · ' + nScratch + ' scratch paper' + (nScratch === 1 ? '' : 's') : '')
-          + (nPhotos ? ' · ' + nPhotos + ' photo' + (nPhotos === 1 ? '' : 's') : '');
+        var extra = (nGraphs ? ' \u00B7 ' + nGraphs + ' graph' + (nGraphs === 1 ? '' : 's') : '')
+          + (nScratch ? ' \u00B7 ' + nScratch + ' scratch paper' + (nScratch === 1 ? '' : 's') : '')
+          + (nPhotos ? ' \u00B7 ' + nPhotos + ' photo' + (nPhotos === 1 ? '' : 's') : '');
         openModal([
-          el('div', { class: 'emoji', text: '🎉' }),
-          el('h2', { text: 'Sent!' }),
+          el('div', { class: 'emoji', text: '\uD83C\uDF89' }),
+          el('h2', { text: isBonus ? 'Bonus sent!' : 'Sent!' }),
           el('p', { text: 'Great work, ' + payload.name + '! Your answers were saved.' }),
           el('p', { class: 'muted', text: (c.requiredTotal - c.blanks.length) + ' of ' + c.requiredTotal + ' boxes answered' + extra + '.' }),
-          el('p', { class: 'muted', text: 'You\'ll get feedback tomorrow morning.' }),
+          el('p', { class: 'muted', text: isBonus ? 'Dad will check it. Each right answer adds +' + ptsText(bonusEach()) + ' point.' : 'You\'ll get feedback tomorrow morning.' }),
           el('div', { class: 'actions' }, [el('button', { class: 'btn', type: 'button', text: 'Yay!', onclick: closeModal })])
         ]);
       })
       .withFailureHandler(function (err) {
-        btn.disabled = false; btn.textContent = 'Submit ✈️';
-        alertModal('😕', 'Not sent yet', 'Something went wrong: ' + (err && err.message || err) + ' — your answers are still here. Check the internet and try again.');
-      })
-      .submitAnswers(payload);
+        btn.disabled = false; btn.textContent = 'Submit \u2708\uFE0F';
+        alertModal('\uD83D\uDE15', 'Not sent yet', 'Something went wrong: ' + (err && err.message || err) + ' \u2014 your answers are still here. Check the internet and try again.');
+      });
+    if (isBonus) {
+      runner.submitBonus(payload);
+    } else runner.submitAnswers(payload);
   }
 
   /* =====================================================================
-   * Tools: 📈 Graph and 🧮 Calculator popups (one overlay, two tabs).
+   * Tools: \uD83D\uDCC8 Graph and \uD83E\uDDEE Calculator popups (one overlay, two tabs).
    * They sit on top of the page and never re-render it, so typed answers stay put.
    * ===================================================================== */
   var toolEl = document.getElementById('toolOverlay');
@@ -3963,7 +4114,7 @@ window.__rioStart = function () {
 
   function copyText(text, btn, label) {
     function done(ok) {
-      btn.textContent = ok ? '✅ Copied' : 'Copy didn\'t work';
+      btn.textContent = ok ? '\u2705 Copied' : 'Copy didn\'t work';
       setTimeout(function () { btn.textContent = label; }, 1500);
     }
     function fallback() {
@@ -4248,12 +4399,12 @@ window.__rioStart = function () {
     var tgt = $('gTarget');
     tgt.innerHTML = '';
     if (info) {
-      tgt.appendChild(el('b', { text: '✏️ For question ' + info.q.number + (info.part.label || '') + ': ' }));
+      tgt.appendChild(el('b', { text: '\u270F\uFE0F For question ' + info.q.number + (info.part.label || '') + ': ' }));
       tgt.appendChild(document.createTextNode(info.part.prompt || ''));
     }
     show(tgt, !!info);
     show($('gSuggest'), !!(G.part && M.suggestedAxes(G.part.prompt)));
-    $('gUse').textContent = info && graphs[info.part.id] ? '✅ Update the graph in my answer' : '✅ Use this graph in my answer';
+    $('gUse').textContent = info && graphs[info.part.id] ? '\u2705 Update the graph in my answer' : '\u2705 Use this graph in my answer';
     $('gFootNote').textContent = info ? 'The picture and the settings go in with your answer for ' + info.q.number + (info.part.label || '') + '.' : '';
     addMsg('', false);
     applyAxes(true);
@@ -4273,7 +4424,7 @@ window.__rioStart = function () {
     if (r.ok) { G.axes = r.axes; msg.hidden = true; }
     else {
       msg.innerHTML = '';
-      r.errors.forEach(function (e) { msg.appendChild(el('div', { text: '⚠️ ' + e })); });
+      r.errors.forEach(function (e) { msg.appendChild(el('div', { text: '\u26A0\uFE0F ' + e })); });
       msg.appendChild(el('div', { class: 'muted', text: 'The graph shows your last good settings until this is fixed.' }));
       msg.hidden = false;
     }
@@ -4322,8 +4473,8 @@ window.__rioStart = function () {
       var kind = it.p ? (it.p.kind === 'points' ? (it.p.points.length === 1 ? 'point' : it.p.points.length + ' points') : it.p.kind === 'curve' ? 'curve' : 'line') : 'can\'t read this one';
       ul.appendChild(el('li', null, [
         el('span', { class: 'swatch', style: 'background:' + it.color }),
-        el('div', { class: 'txt' }, [el('b', { text: itemName(it) }), el('small', { text: (it.label ? it.label + ' · ' : '') + kind + ' · ' + M.colorName(it.color) })]),
-        el('button', { type: 'button', class: 'rm', 'aria-label': 'Remove ' + itemName(it), text: '✕', onclick: function () {
+        el('div', { class: 'txt' }, [el('b', { text: itemName(it) }), el('small', { text: (it.label ? it.label + ' \u00B7 ' : '') + kind + ' \u00B7 ' + M.colorName(it.color) })]),
+        el('button', { type: 'button', class: 'rm', 'aria-label': 'Remove ' + itemName(it), text: '\u2715', onclick: function () {
           G.ws.items.splice(i, 1); saveWs(); renderList(); drawScreen();
         } })
       ]));
@@ -4349,7 +4500,7 @@ window.__rioStart = function () {
       ctx.beginPath(); ctx.arc(X, Y, 9, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(X - 14, Y); ctx.lineTo(X - 5, Y); ctx.moveTo(X + 5, Y); ctx.lineTo(X + 14, Y);
       ctx.moveTo(X, Y - 14); ctx.lineTo(X, Y - 5); ctx.moveTo(X, Y + 5); ctx.lineTo(X, Y + 14); ctx.stroke();
-      coord.textContent = '📍 (' + uni(M.formatNumber(G.tap.x)) + ', ' + uni(M.formatNumber(G.tap.y)) + ')';
+      coord.textContent = '\uD83D\uDCCD (' + uni(M.formatNumber(G.tap.x)) + ', ' + uni(M.formatNumber(G.tap.y)) + ')';
       coord.hidden = false;
     } else coord.hidden = true;
   }
@@ -4394,9 +4545,9 @@ window.__rioStart = function () {
   var C = { expr: '', done: false, ans: '', frac: null, error: '' };
   var calcBuilt = false;
   var CALC_KEYS = [
-    ['C', 'clear', 'fn', 'Clear'], ['⌫', 'back', 'fn', 'Backspace'], ['(', '(', ''], [')', ')', ''], ['÷', '÷', 'op', 'Divide'],
-    ['x²', '²', '', 'Squared'], ['√', '√(', '', 'Square root'], ['^', '^', '', 'Power'], ['π', 'π', '', 'Pi'], ['×', '×', 'op', 'Times'],
-    ['7', '7', 'd'], ['8', '8', 'd'], ['9', '9', 'd'], ['±', 'neg', '', 'Change sign'], ['−', '−', 'op', 'Minus'],
+    ['C', 'clear', 'fn', 'Clear'], ['\u232B', 'back', 'fn', 'Backspace'], ['(', '(', ''], [')', ')', ''], ['\u00F7', '\u00F7', 'op', 'Divide'],
+    ['x\u00B2', '\u00B2', '', 'Squared'], ['\u221A', '\u221A(', '', 'Square root'], ['^', '^', '', 'Power'], ['\u03C0', '\u03C0', '', 'Pi'], ['\u00D7', '\u00D7', 'op', 'Times'],
+    ['7', '7', 'd'], ['8', '8', 'd'], ['9', '9', 'd'], ['\u00B1', 'neg', '', 'Change sign'], ['\u2212', '\u2212', 'op', 'Minus'],
     ['4', '4', 'd'], ['5', '5', 'd'], ['6', '6', 'd'], ['a/b', '/', 'small', 'Fraction bar'], ['+', '+', 'op', 'Plus'],
     ['1', '1', 'd'], ['2', '2', 'd'], ['3', '3', 'd'], ['.', '.', 'd', 'Decimal point'], ['=', 'eq', 'eq', 'Equals'],
     ['0', '0', 'd wide'], ['Ans', 'ans', 'small wide', 'Last answer']
@@ -4412,7 +4563,7 @@ window.__rioStart = function () {
       calcBtns[k[1]] = b;
       $('cKeys').appendChild(b);
     });
-    $('cCopy').addEventListener('click', function () { var t = calcOutput(); if (t) copyText(t, $('cCopy'), '📋 Copy'); });
+    $('cCopy').addEventListener('click', function () { var t = calcOutput(); if (t) copyText(t, $('cCopy'), '\uD83D\uDCCB Copy'); });
     $('cInsert').addEventListener('click', function () {
       var t = calcOutput();
       if (t && !insertIntoAnswer(t)) renderCalc();
@@ -4438,20 +4589,20 @@ window.__rioStart = function () {
     } else if (k === 'neg') {
       if (C.done) { C.expr = C.ans.charAt(0) === '-' ? C.ans.slice(1) : '\u2212' + C.ans; C.expr = uni(C.expr); C.done = false; }
       else {
-        var m = /(\d+\.?\d*|\.\d+|π)$/.exec(C.expr);
+        var m = /(\d+\.?\d*|\.\d+|\u03C0)$/.exec(C.expr);
         if (!m) C.expr += '\u2212';
         else {
           var before = C.expr.slice(0, m.index), num = m[0];
           if (/\(\u2212$/.test(before)) C.expr = before.slice(0, -2) + num;
-          else if (/(^|[×÷\/^(])\u2212$/.test(before)) C.expr = before.slice(0, -1) + num;
-          else if (before === '' || /[×÷\/^(]$/.test(before)) C.expr = before + '\u2212' + num;
+          else if (/(^|[\u00D7\u00F7\/^(])\u2212$/.test(before)) C.expr = before.slice(0, -1) + num;
+          else if (before === '' || /[\u00D7\u00F7\/^(]$/.test(before)) C.expr = before + '\u2212' + num;
           else C.expr = before + '(\u2212' + num;
         }
       }
     } else {
       var s = k === 'ans' ? ansForExpr() : k;
       if (!s) return renderCalc();
-      if (C.done) { C.expr = /^[+\u2212×÷\/^²]/.test(s) ? ansForExpr() : ''; C.done = false; }
+      if (C.done) { C.expr = /^[+\u2212\u00D7\u00F7\/^\u00B2]/.test(s) ? ansForExpr() : ''; C.done = false; }
       if (C.expr.length < 150) C.expr += s;
     }
     renderCalc();
@@ -4470,7 +4621,7 @@ window.__rioStart = function () {
     var res = $('cRes'), pv = calcPreview();
     $('cExpr').textContent = C.expr ? C.expr + (C.done ? ' =' : '') : '';
     res.className = 'cres';
-    if (C.error) { res.textContent = '⚠️ ' + C.error; res.classList.add('err'); }
+    if (C.error) { res.textContent = '\u26A0\uFE0F ' + C.error; res.classList.add('err'); }
     else if (C.done) res.textContent = uni(C.ans);
     else if (pv && /[^\d.]/.test(C.expr)) { res.textContent = '= ' + uni(pv.text); res.classList.add('preview'); }
     else res.textContent = C.expr ? '' : '0';
@@ -4479,7 +4630,7 @@ window.__rioStart = function () {
     var out = calcOutput(), target = lastField && document.body.contains(lastField) ? fieldInfo[lastField.id.slice(2)] : '';
     $('cCopy').disabled = !out;
     $('cInsert').disabled = !out || !target;
-    $('cHint').textContent = target ? 'Put in my answer → ' + target
+    $('cHint').textContent = target ? 'Put in my answer \u2192 ' + target
       : 'Tip: tap an answer box first, then open the calculator, and "Put in my answer" will type the result there for you.';
   }
 
@@ -4489,8 +4640,8 @@ window.__rioStart = function () {
     if (currentTool !== 'calc' || e.ctrlKey || e.metaKey || e.altKey) return;
     var a = document.activeElement;
     if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type === 'text'))) return;
-    var map = { '+': '+', '-': '\u2212', '*': '×', 'x': '×', 'X': '×', '/': '/', '÷': '÷', '^': '^', '(': '(', ')': ')', '.': '.', ',': '.',
-      'p': 'π', 'P': 'π', 'r': '√(', 's': '√(', '²': '²', 'Enter': 'eq', '=': 'eq', 'Backspace': 'back', 'Delete': 'clear', 'c': 'clear', 'C': 'clear' };
+    var map = { '+': '+', '-': '\u2212', '*': '\u00D7', 'x': '\u00D7', 'X': '\u00D7', '/': '/', '\u00F7': '\u00F7', '^': '^', '(': '(', ')': ')', '.': '.', ',': '.',
+      'p': '\u03C0', 'P': '\u03C0', 'r': '\u221A(', 's': '\u221A(', '\u00B2': '\u00B2', 'Enter': 'eq', '=': 'eq', 'Backspace': 'back', 'Delete': 'clear', 'c': 'clear', 'C': 'clear' };
     var k = /^[0-9]$/.test(e.key) ? e.key : map[e.key];
     if (!k) return;
     e.preventDefault();
@@ -4509,7 +4660,8 @@ window.__rioStart = function () {
 <script>
 /* Loader. No ?date= opens Rio's home screen (calendar, scores, skills). ?date=YYYY-MM-DD fetches that
    day's questions-only test. ?quiz=skill opens a mini quiz made in the page (not a daily test).
-   If both are set, the quiz wins. Every call omits cookies. */
+   ?bonus=YYYY-MM-DD opens that day's bonus round (questions only + each item's status).
+   Priority: quiz, then bonus, then date. Every call omits cookies. */
 (function () {
   'use strict';
   var app = document.getElementById('app');
@@ -4518,11 +4670,12 @@ window.__rioStart = function () {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     } catch (e) { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
   }
-  var requested = '', quizSkill = '';
+  var requested = '', quizSkill = '', bonusDate = '';
   try {
     var qs = new URLSearchParams(location.search);
     requested = (qs.get('date') || '').trim();
     quizSkill = (qs.get('quiz') || '').trim();
+    bonusDate = (qs.get('bonus') || '').trim();
   } catch (e) {}
   var baseUrl = location.origin + location.pathname;
   function node(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
@@ -4537,7 +4690,7 @@ window.__rioStart = function () {
     var c = node('div', 'card error');
     c.appendChild(node('p', '', '😕 ' + msg));
     c.appendChild(node('p', 'muted', 'Check the internet connection and try again.'));
-    var b = node('button', 'btn', 'Try again'); b.type = 'button'; b.addEventListener('click', load);
+    var b = node('button', 'btn', 'Try again'); b.type = 'button'; b.addEventListener('click', function () { retry(); });
     var a = node('div', 'actions'); a.style.margin = '6px 0 14px'; a.appendChild(b); c.appendChild(a);
     app.appendChild(c);
   }
@@ -4605,7 +4758,29 @@ window.__rioStart = function () {
       startQuiz(inbox, (inbox && inbox.today) || tokyoToday());
     }, function () { startQuiz(null, tokyoToday()); });
   }
+  function loadBonus() {
+    showLoading();
+    rioFetchJSON(RIO_API_URL + '?format=json&bonus=' + encodeURIComponent(bonusDate), { method: 'GET' }, 45000).then(function (res) {
+      // An older backend without bonus rounds answers with the plain test JSON (no api:'bonus').
+      var isBonusApi = !!(res && res.api === 'bonus');
+      DATA = {
+        mode: 'bonus',
+        test: isBonusApi && res.ok === true && res.bonus ? res.bonus : null,
+        error: isBonusApi ? (res.error || null) : 'Bonus rounds are not turned on yet. Try again later.',
+        requested: bonusDate,
+        today: (res && res.today) || tokyoToday(),
+        recent: [],
+        bonusState: isBonusApi ? (res.state || null) : null,
+        baseUrl: baseUrl
+      };
+      document.title = 'Bonus round' + (DATA.test ? ' ' + DATA.test.date : '');
+      app.innerHTML = '';
+      window.__rioStart();
+    }).catch(function (e) { showError(String(e && e.message || e)); });
+  }
+  function retry() { if (quizSkill) loadQuiz(); else if (bonusDate) loadBonus(); else if (requested) load(); else loadHome(); }
   if (quizSkill) loadQuiz();
+  else if (bonusDate) loadBonus();
   else if (requested) load();
   else loadHome();
 })();

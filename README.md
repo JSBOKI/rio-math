@@ -8,6 +8,7 @@ Google can't tell which account (if any) is signed in on the device.
 * `index.html` is generated. Don't edit it by hand. Edit `Index.html` in the main project, then run `node dev/build-pages.js`.
 * `API_URL.txt` holds the Apps Script `/exec` URL that the page calls (public, no secrets).
 * Links: `https://<user>.github.io/rio-math/` opens Rio's home screen (today's test, calendar, scores, skills, certificates). `?date=YYYY-MM-DD` opens that day's test. Today's test is Tokyo time, or the newest test that isn't in the future.
+* `?bonus=YYYY-MM-DD` opens that day's bonus round (make-up questions after grading, each +½ point). It loads `<exec>?format=json&bonus=DATE` (questions + each item's status only) and sends answers as a text/plain POST `{"action":"bonus",...}`, with no cookies.
 * Every problem has Scratch paper: a drawing pad saved on the phone (`localStorage`, by date and problem). Attach to my answer sends that drawing with the submission, using the same photo path as camera photos (up to 8 pictures).
 
 Answer keys are never in this repo or on the page. The backend only serves questions. The home screen's skill percentages are his own scores; Dad's per-question notes and coaching summaries are not on this page.
