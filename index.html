@@ -3367,8 +3367,8 @@ var RioQuiz = (function () {
     }
     var best = weak[0];
     var lead = best
-      ? ('You can get stronger at ' + nice(best) + '. That is your lowest score with a few tries (' + best.percent + '%). A mini quiz is 5 questions, about 3 minutes.')
-      : 'Pick a skill and try 5 quick questions. About 3 minutes, and a new set every time.';
+      ? ('You can get stronger at ' + nice(best) + '. That is your lowest score with a few tries (' + best.percent + '%). A mini quiz is 5 questions, about 3 minutes. You earn 1 extra token \uD83E\uDE99 for every right answer!')
+      : 'Pick a skill and try 5 quick questions. About 3 minutes, and a new set every time. You earn 1 extra token \uD83E\uDE99 for every right answer!';
     var picks = el('div', { class: 'quiz-picks' });
     weak.forEach(function (s, i) {
       var name = nice(s);
