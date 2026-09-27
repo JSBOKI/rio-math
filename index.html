@@ -3619,7 +3619,7 @@ var RioQuiz = (function () {
       send(rec, sent, tok);
     }
     // The server re-checks every answer (it rebuilds the questions from the seed) and decides the tokens: 1 per right answer,
-    // at most 100 practice tokens a day. Sending the same quiz again never pays twice.
+    // at most 200 practice tokens a day. Sending the same quiz again never pays twice.
     function send(rec, sent, tok) {
       var payload = { id: rec.id, skill: rec.skill, seed: seed, score: rec.score, total: rec.total, questions: rec.questions };
       try {
@@ -3633,7 +3633,7 @@ var RioQuiz = (function () {
                 tok.hidden = false;
                 if (res.capped) sent.textContent = 'That is the most practice tokens for today. Sent to Dad.';
               } else if (res.capped) {
-                tok.textContent = 'No more practice tokens today (the limit is 100). Great practice anyway!';
+                tok.textContent = 'No more practice tokens today (the limit is 200). Great practice anyway!';
                 tok.className = 'quiz-tokens small'; tok.hidden = false;
               }
               try { if (window.RioInbox && RioInbox.state && RioInbox.state()) RioInbox.load(); } catch (e) {}
