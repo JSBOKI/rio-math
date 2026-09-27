@@ -3329,6 +3329,9 @@ var RioQuiz = (function () {
       '.quiz-end{text-align:center;padding:12px 6px 4px}',
       '.quiz-end .big{font-size:2.4em;line-height:1}',
       '.quiz-stars{font-size:.9em;color:#5b6475}',
+      '.quiz-tokens{display:inline-block;margin:6px 0 10px;padding:8px 18px;border-radius:99px;background:#fff6d6;border:2px solid #f1c94a;color:#8a5a00;font-weight:900;font-size:1.5em}',
+      '.quiz-tokens[hidden]{display:none}',
+      '.quiz-tokens.small{font-size:.95em;font-weight:700}',
       '#homeQuizHistory .trend{font-variant-numeric:tabular-nums}'
     ].join('');
     document.head.appendChild(s);
@@ -3601,6 +3604,8 @@ var RioQuiz = (function () {
       end.appendChild(el('h2', { text: score + ' out of 5' }));
       end.appendChild(el('p', { text: star ? 'Awesome! You really practiced ' + label + '.' : 'Good practice. The tricky ones are worth another try.' }));
       if (star) end.appendChild(el('p', { class: 'quiz-stars', text: 'You earned a practice star on this phone.' }));
+      var tok = el('div', { class: 'quiz-tokens', id: 'quizTokens', hidden: '' });
+      end.appendChild(tok);
       var sent = el('p', { class: 'muted', id: 'quizSent', text: 'Saving for Dad\u2026' });
       end.appendChild(sent);
       end.appendChild(el('button', { type: 'button', class: 'btn', id: 'quizAgain', text: 'Try another', onclick: function () {
@@ -3611,14 +3616,28 @@ var RioQuiz = (function () {
         window.top.location.href = (homeHref || location.pathname) + '?quiz=' + encodeURIComponent(skill);
       } }));
       card.appendChild(end);
-      send(rec, sent);
+      send(rec, sent, tok);
     }
-    function send(rec, sent) {
-      var payload = { id: rec.id, skill: rec.skill, score: rec.score, total: rec.total, questions: rec.questions };
+    // The server re-checks every answer (it rebuilds the questions from the seed) and decides the tokens: 1 per right answer,
+    // at most 100 practice tokens a day. Sending the same quiz again never pays twice.
+    function send(rec, sent, tok) {
+      var payload = { id: rec.id, skill: rec.skill, seed: seed, score: rec.score, total: rec.total, questions: rec.questions };
       try {
         google.script.run
           .withSuccessHandler(function (res) {
             sent.textContent = (res && res.ok) ? 'Sent to Dad. This does not count as today\'s test.' : 'Saved on this phone.';
+            if (res && res.ok && tok) {
+              var n = Number(res.tokens) || 0;
+              if (n > 0) {
+                tok.textContent = '+' + n + ' token' + (n === 1 ? '' : 's') + '! \ud83e\ude99';
+                tok.hidden = false;
+                if (res.capped) sent.textContent = 'That is the most practice tokens for today. Sent to Dad.';
+              } else if (res.capped) {
+                tok.textContent = 'No more practice tokens today (the limit is 100). Great practice anyway!';
+                tok.className = 'quiz-tokens small'; tok.hidden = false;
+              }
+              try { if (window.RioInbox && RioInbox.state && RioInbox.state()) RioInbox.load(); } catch (e) {}
+            }
           })
           .withFailureHandler(function () {
             sent.textContent = 'Saved on this phone. Dad will see it after the math server is updated.';
