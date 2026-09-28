@@ -1753,6 +1753,11 @@ var RioHome = (function () {
     var bc = bonusCard(m);
     if (bc) root.appendChild(bc);
     root.appendChild(tiles(m));
+    // Daily drills card: only when the math server can check drill sets (rioData.drills.version >= 1).
+    if (window.RioQuiz && RioQuiz.drillsCard && rio && rio.drills && Number(rio.drills.version) >= 1) {
+      var dc = RioQuiz.drillsCard(m, goQuiz);
+      if (dc) root.appendChild(dc);
+    }
     if (window.RioQuiz && RioQuiz.practiceCard) root.appendChild(RioQuiz.practiceCard(m, goQuiz));
     root.appendChild(calendar(m));
     root.appendChild(stats(m));
@@ -2542,7 +2547,7 @@ var RioQuizGen = (function () {
   var BY_ID = {};
   SKILLS.forEach(function (s) { BY_ID[s.id] = s; });
 
-  function label(id) { return (BY_ID[id] && BY_ID[id].label) || String(id || ''); }
+  function label(id) { if (id === 'drills') return 'Daily drills: x-intercepts & forms'; return (BY_ID[id] && BY_ID[id].label) || String(id || ''); }
   function rng(seed) {
     var s = (seed >>> 0) || 1;
     return function () {
@@ -3227,6 +3232,200 @@ var RioQuizGen = (function () {
     );
   }
 
+
+  /* ---------------- Daily drills: x-intercepts & forms (skill id 'drills', 6 questions a set) ----------------
+     Seed = dayIndex * 100000 + set (dayIndex = days since 2026-01-01, set = 1, 2, 3, ...). Rio's page makes a new seed for
+     every set, so the drills never run out; the server rebuilds the same 6 questions from the seed to check them.
+     Level (1 positive whole slopes, 2 adds negative slopes, 3 adds fraction slopes) grows with the days since 2026-09-28
+     and with the set number that day (every 4 sets = one level up, max 3). */
+  var DRILL_ID = 'drills';
+  var DRILL_LABEL = 'Daily drills: x-intercepts & forms';
+  var DRILL_EPOCH = Date.UTC(2026, 0, 1, 12);
+  var DRILL_START = 270;   // 2026-09-28 as a dayIndex
+  function isoDayIndex(iso) {
+    var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    if (!p) return 0;
+    return Math.round((Date.UTC(+p[1], +p[2] - 1, +p[3], 12) - DRILL_EPOCH) / 86400000);
+  }
+  function drillSeed(iso, set) {
+    var d = isoDayIndex(iso), s = Math.max(1, Math.min(99999, Math.floor(Number(set) || 1)));
+    return d * 100000 + s;
+  }
+  function drillInfo(seed) {
+    seed = Math.floor(Number(seed) || 0);
+    var day = Math.floor(seed / 100000), set = seed % 100000 || 1;
+    var since = day - DRILL_START;
+    var base = since < 4 ? 1 : since < 10 ? 2 : 3;
+    var level = Math.max(1, Math.min(3, base + Math.floor((set - 1) / 4)));
+    var date = new Date(DRILL_EPOCH + day * 86400000).toISOString().slice(0, 10);
+    return { day: day, date: date, set: set, level: level };
+  }
+  var MINUS = '\u2212';
+  function uNum(n) { return n < 0 ? MINUS + Math.abs(n) : String(n); }
+  function fracU(p, q) {   // p/q in lowest terms, sign in front
+    var g = gcd(p, q); p /= g; q /= g;
+    if (q < 0) { p = -p; q = -q; }
+    if (q === 1) return uNum(p);
+    return (p < 0 ? MINUS : '') + Math.abs(p) + '/' + q;
+  }
+  function slopeTerm(p, q) {   // "2x", "\u2212x", "(2/3)x", "\u2212(2/3)x"
+    var g = gcd(p, q); p /= g; q /= g;
+    if (q < 0) { p = -p; q = -q; }
+    if (q === 1) return p === 1 ? 'x' : p === -1 ? MINUS + 'x' : uNum(p) + 'x';
+    return (p < 0 ? MINUS : '') + '(' + Math.abs(p) + '/' + q + ')x';
+  }
+  function lineU(p, q, b) {    // y = (p/q)x + b
+    var s = 'y = ' + slopeTerm(p, q);
+    if (b > 0) s += ' + ' + b; else if (b < 0) s += ' ' + MINUS + ' ' + Math.abs(b);
+    return s;
+  }
+  function stdU(A, B, C) {     // Ax + By = C
+    function term(c, v, first) {
+      var a = Math.abs(c), t = (a === 1 ? '' : String(a)) + v;
+      if (first) return (c < 0 ? MINUS : '') + t;
+      return (c < 0 ? ' ' + MINUS + ' ' : ' + ') + t;
+    }
+    return term(A, 'x', true) + term(B, 'y', false) + ' = ' + uNum(C);
+  }
+  function cv(c, v) { return (c === 1 ? '' : c === -1 ? MINUS : uNum(c)) + v; }   // 1x -> x, -1y -> -y
+  function plusNum(n) { return n < 0 ? ' ' + MINUS + ' ' + Math.abs(n) : n > 0 ? ' + ' + n : ''; }
+  function nz(r, a, b) { var v = 0, g = 0; while (v === 0 && g++ < 20) v = irand(r, a, b); return v || 1; }
+  function drillSlope(r, level, allowFrac) {   // { p, q }
+    if (level >= 3 && allowFrac && r() < 0.75) {
+      var q = pick(r, [2, 3, 4, 5]), p = nz(r, -5, 5), guard = 0;
+      while ((gcd(p, q) !== 1 || Math.abs(p) === q) && guard++ < 20) p = nz(r, -5, 5);
+      if (gcd(p, q) !== 1) p = 1;
+      return { p: p, q: q };
+    }
+    var m = level === 1 ? irand(r, 1, 5) : (r() < 0.6 ? -irand(r, 1, 6) : irand(r, 1, 6));
+    return { p: m, q: 1 };
+  }
+  function toStd(p, q, b) {    // y = (p/q)x + b  ->  A x + B y = C, integers, A > 0, lowest terms
+    var A = -p, B = q, C = q * b;
+    if (A < 0) { A = -A; B = -B; C = -C; }
+    var g = gcd(gcd(A, B), C || A);
+    return { A: A / g, B: B / g, C: C / g };
+  }
+  function dq(prompt, answer, hint, steps, check, drill) {
+    return q(prompt, answer, hint, steps, { kind: 'text', check: check, drill: drill });
+  }
+  function drillXintSlope(r, level) {
+    var s = drillSlope(r, level, true), x0, b, guard = 0;
+    do {
+      x0 = s.q * nz(r, level === 1 ? 1 : -4, level === 1 ? 6 : 5);
+      b = -s.p * x0 / s.q;
+    } while ((b === 0 || Math.abs(b) > 30) && guard++ < 30);
+    var eq = lineU(s.p, s.q, b);
+    var mText = s.q === 1 ? slopeTerm(s.p, 1) : slopeTerm(s.p, s.q);
+    var steps = 'Set y = 0: 0 = ' + eq.slice(4) + '. Move the number: ' + mText + ' = ' + uNum(-b) + '. ' +
+      (s.q === 1 ? (s.p === 1 ? '' : 'Divide by ' + uNum(s.p) + ': x = ' + uNum(x0) + '.') : 'Multiply both sides by ' + s.q + ': ' + cv(s.p, 'x') + ' = ' + uNum(-b * s.q) + '.' + (s.p === 1 ? '' : ' Divide by ' + uNum(s.p) + ': x = ' + uNum(x0) + '.')) +
+      ' The x-intercept is (' + uNum(x0) + ', 0).';
+    return dq('Find the x-intercept of ' + eq + '. Write it as a point (x, 0).', '(' + uNum(x0) + ', 0)',
+      'The x-intercept is where the line crosses the x-axis, so y = 0 there. Put 0 in for y and solve for x.',
+      steps, { type: 'xint', x: x0 }, 'x-intercept');
+  }
+  function drillXintStd(r, level) {
+    var A = irand(r, 1, level === 1 ? 5 : 8), B = level === 1 ? irand(r, 1, 6) : nz(r, -7, 7), x0 = nz(r, level === 1 ? 1 : -6, level === 1 ? 8 : 9);
+    if (level >= 3 && r() < 0.5) A = -A;
+    if (A === B) B = B + 1 || 2;
+    var C = A * x0;
+    return dq('Find the x-intercept of ' + stdU(A, B, C) + '. Write it as a point (x, 0).', '(' + uNum(x0) + ', 0)',
+      'On the x-axis, y = 0. Cover up the y term (it becomes 0) and solve for x.',
+      'Set y = 0, so the y term is 0: ' + cv(A, 'x') + ' = ' + uNum(C) + '. ' + (A === 1 ? '' : 'Divide by ' + uNum(A) + ': x = ' + uNum(x0) + '. ') + 'The x-intercept is (' + uNum(x0) + ', 0).',
+      { type: 'xint', x: x0 }, 'x-intercept');
+  }
+  function drillToStd(r, level, allowFrac) {
+    var s = drillSlope(r, level, allowFrac), b = nz(r, -9, 9), t = toStd(s.p, s.q, b);
+    var eq = lineU(s.p, s.q, b), steps;
+    if (s.q === 1) {
+      steps = 'Move the x term to the left side: ' + stdU(-s.p, 1, b) + '.' +
+        (-s.p < 0 ? ' A must be positive, so multiply every term by ' + MINUS + '1: ' + stdU(t.A, t.B, t.C) + '.' : '');
+    } else {
+      steps = 'Clear the fraction: multiply every term by ' + s.q + ': ' + s.q + 'y = ' + slopeTerm(s.p, 1) + plusNum(s.q * b) + '. ' +
+        'Move the x term to the left: ' + stdU(-s.p, s.q, s.q * b) + '.' + (-s.p < 0 ? ' Multiply every term by ' + MINUS + '1 so A is positive: ' + stdU(t.A, t.B, t.C) + '.' : '');
+    }
+    return dq('Write ' + eq + ' in standard form Ax + By = C (whole numbers, A positive).', stdU(t.A, t.B, t.C),
+      'Get x and y on the left and the number on the right. Clear any fraction and make A positive.',
+      steps, { type: 'standard', A: t.A, B: t.B, C: t.C }, 'to-standard');
+  }
+  function drillToSlopeInt(r, level, allowFrac) {
+    var s = drillSlope(r, level, allowFrac), b = nz(r, -8, 8), t = toStd(s.p, s.q, b);
+    var k = (s.q === 1 && r() < 0.6) ? pick(r, [2, 3, 4]) : 1;   // make the y coefficient not 1 most of the time
+    var A = t.A * k, B = t.B * k, C = t.C * k;
+    var eq = stdU(A, B, C), ans = lineU(s.p, s.q, b);
+    var steps = 'Move the x term to the right: ' + cv(B, 'y') + ' = ' + cv(-A, 'x') + plusNum(C) + '. ' +
+      (B === 1 ? 'y is already by itself.' : 'Divide EVERY term by ' + uNum(B) + ': ' + ans + '.');
+    return dq('Write ' + eq + ' in slope-intercept form (y = mx + b).', ans,
+      'Get y by itself: move the x term to the other side, then divide EVERY term by the number in front of y.',
+      steps, { type: 'slopeint', m: s.p / s.q, b: b }, 'to-slope-intercept');
+  }
+  function generateDrills(seed) {
+    var info = drillInfo(seed), r = rng(seed), L = info.level;
+    var list = [
+      drillXintSlope(r, L),
+      drillToStd(r, Math.min(L, 2), false),
+      drillToSlopeInt(r, Math.min(L, 2), false),
+      drillXintStd(r, L),
+      drillToStd(r, L, true),
+      drillToSlopeInt(r, L, true)
+    ];
+    list.forEach(function (x, i) { x.n = i + 1; x.skill = DRILL_ID; x.level = L; x.set = info.set; });
+    return list;
+  }
+
+  /* Answer checks that also care about the FORM (drills). Other questions: equivalent(). */
+  function sides(s) {
+    var n = norm(s).replace(/\*/g, '');
+    if (!n || /[<>]/.test(n)) return null;
+    var bits = n.split('=');
+    if (bits.length !== 2 || !bits[0] || !bits[1]) return null;
+    var L = collect(bits[0]), R = collect(bits[1]);
+    return L && R ? { L: L, R: R } : null;
+  }
+  function isInt(v) { return Math.abs(v - Math.round(v)) < 1e-9; }
+  function checkStandard(given, c) {
+    var sd = sides(given);
+    if (!sd) return false;
+    var V = sd.L, K = sd.R;
+    if (near(V.x, 0) && near(V.y, 0)) { V = sd.R; K = sd.L; }
+    if (!near(V.c, 0) || !near(K.x, 0) || !near(K.y, 0)) return false;
+    var a = V.x, b = V.y, k = K.c;
+    if (!isInt(a) || !isInt(b) || !isInt(k)) return false;
+    if (near(a, 0) !== (c.A === 0) || near(b, 0) !== (c.B === 0)) return false;
+    var f = c.A !== 0 ? a / c.A : b / c.B;
+    if (near(f, 0)) return false;
+    return near(a, f * c.A) && near(b, f * c.B) && near(k, f * c.C);
+  }
+  function checkSlopeInt(given, c) {
+    var sd = sides(given);
+    if (!sd) return false;
+    var Y = sd.L, E = sd.R;
+    if (!(near(Y.y, 1) && near(Y.x, 0) && near(Y.c, 0))) { Y = sd.R; E = sd.L; }
+    if (!(near(Y.y, 1) && near(Y.x, 0) && near(Y.c, 0)) || !near(E.y, 0)) return false;
+    return near(E.x, c.m) && near(E.c, c.b);
+  }
+  function checkXint(given, c) {
+    var n = norm(given).replace(/\*/g, '').replace(/^x=/, '');
+    var m = /^\((.+),(.+)\)$/.exec(n);
+    if (m) {
+      var y = parseNumber(m[2]);
+      if (y == null || !near(y, 0) && Math.abs(y) > 1e-9) return false;
+      n = m[1];
+    }
+    var x = parseNumber(n);
+    return x != null && near(x, c.x);
+  }
+  function checkAnswer(qq, given) {
+    if (!qq) return false;
+    var c = qq.check;
+    try {
+      if (c && c.type === 'standard') return checkStandard(given, c);
+      if (c && c.type === 'slopeint') return checkSlopeInt(given, c);
+      if (c && c.type === 'xint') return checkXint(given, c);
+    } catch (e) { return false; }
+    return equivalent(given, qq.answer);
+  }
+
   var TEMPLATES = {
     'slope': [slopeTwoPoints, slopeTable, slopeFromEq, slopeStandard, slopeTwoPoints],
     'tables': [missingTable, tableMatch, slopeTable, missingTable, tableMatch],
@@ -3244,6 +3443,7 @@ var RioQuizGen = (function () {
   };
 
   function generate(skill, seed) {
+    if (skill === DRILL_ID) return generateDrills(seed);
     var temps = TEMPLATES[skill];
     if (!temps) return null;
     var r = rng(seed);
@@ -3288,9 +3488,15 @@ var RioQuizGen = (function () {
   return {
     SKILLS: SKILLS,
     label: label,
-    has: function (id) { return !!TEMPLATES[id]; },
+    has: function (id) { return !!TEMPLATES[id] || id === DRILL_ID; },
     generate: generate,
     equivalent: equivalent,
+    checkAnswer: checkAnswer,
+    drillSeed: drillSeed,
+    drillInfo: drillInfo,
+    DRILL_ID: DRILL_ID,
+    DRILL_LABEL: DRILL_LABEL,
+    DRILLS_VERSION: 1,
     weakSkills: weakSkills,
     parseNumber: parseNumber,
     lineOf: lineOf
@@ -3352,7 +3558,14 @@ var RioQuiz = (function () {
       '.quiz-tokens{display:inline-block;margin:6px 0 10px;padding:8px 18px;border-radius:99px;background:#fff6d6;border:2px solid #f1c94a;color:#8a5a00;font-weight:900;font-size:1.5em}',
       '.quiz-tokens[hidden]{display:none}',
       '.quiz-tokens.small{font-size:.95em;font-weight:700}',
-      '#homeQuizHistory .trend{font-variant-numeric:tabular-nums}'
+      '#homeQuizHistory .trend{font-variant-numeric:tabular-nums}',
+      '.home-drills{border:2px solid #9fe0bd;background:linear-gradient(180deg,#f0fff6,#fff)}',
+      '.home-drills .lead{font-weight:700;margin:0 0 6px}',
+      '.home-drills ul{margin:4px 0 8px;padding-left:20px}',
+      '.home-drills .today{color:#1f7a4a;font-weight:800;margin:4px 0 10px}',
+      '.drill-banner{border-radius:14px;padding:10px 12px;margin:0 0 10px;background:#e7f8ee;border:2px solid #8fd3ab;font-weight:700}',
+      '.drill-banner .quiz-tokens{font-size:1em;margin:4px 0 0;padding:4px 12px}',
+      '.drill-form{font-size:.85em;color:#5b6475;margin-top:4px}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -3376,6 +3589,47 @@ var RioQuiz = (function () {
       map[q.skill].push(q);
     });
     return map;
+  }
+
+  /* ---------- Daily drills (skill 'drills'): the set number for today lives on this phone; every set gets a new seed ---------- */
+  var DRILL_STATE = 'rio-math-drills';
+  function localDay() {
+    var d = new Date(Date.now() + 9 * 3600000);   // Tokyo
+    return d.toISOString().slice(0, 10);
+  }
+  function drillsToday(day) {
+    return loadHist().filter(function (q) { return q && q.skill === 'drills' && q.day === day; });
+  }
+  function nextDrillSet(day) {
+    var st = null;
+    try { st = JSON.parse(localStorage.getItem(DRILL_STATE) || 'null'); } catch (e) { st = null; }
+    var n = (st && st.day === day && Number(st.next) > 0) ? Number(st.next) : 1;
+    return Math.max(n, drillsToday(day).length + 1);
+  }
+  function bumpDrillSet(day, set) {
+    try { localStorage.setItem(DRILL_STATE, JSON.stringify({ day: day, next: set + 1 })); } catch (e) {}
+  }
+  function drillsCard(model, onStart) {
+    ensureCss();
+    if (!window.RioQuizGen || !RioQuizGen.drillSeed) return null;
+    var day = (model && model.today) || localDay();
+    var done = drillsToday(day), right = 0, asked = 0;
+    done.forEach(function (q) { right += Number(q.score) || 0; asked += Number(q.total) || 0; });
+    var next = nextDrillSet(day);
+    var info = RioQuizGen.drillInfo(RioQuizGen.drillSeed(day, next));
+    return el('section', { class: 'home-card home-drills', id: 'homeDrills' }, [
+      el('h2', { text: '\u26A1 Daily drills: x-intercepts & forms' }),
+      el('p', { class: 'lead', text: '6 quick questions a set, 2 of each:' }),
+      el('ul', null, [
+        el('li', { text: 'Find the x-intercept' }),
+        el('li', { text: 'Change y = mx + b to standard form Ax + By = C' }),
+        el('li', { text: 'Change standard form to y = mx + b' }),
+      ]),
+      el('p', { text: 'New numbers every set, and the next set starts as soon as you finish. +1 token \uD83E\uDE99 for every right answer (up to 5 a set). This is extra practice. It does not change your test score.' }),
+      done.length ? el('p', { class: 'today', id: 'drillsToday', text: 'Today: ' + done.length + ' set' + (done.length === 1 ? '' : 's') + ', ' + right + ' of ' + asked + ' right.' }) : null,
+      el('button', { type: 'button', class: 'btn', id: 'drillsStart', text: (done.length ? 'Keep going: set ' + next : 'Start drills') + ' \u00B7 level ' + info.level,
+        onclick: function () { onStart('drills'); } }),
+    ]);
   }
 
   function practiceCard(model, onStart) {
@@ -3501,23 +3755,41 @@ var RioQuiz = (function () {
       return;
     }
     var label = RioQuizGen.label(skill);
-    var seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
-    if (!seed) seed = 1;
-    var questions = RioQuizGen.generate(skill, seed);
-    var quizId = 'mq_' + (seed.toString(36) + Math.floor(Math.random() * 1e9).toString(36)).replace(/[^a-z0-9]/g, '').slice(0, 12);
-    var i = 0, given = [], rights = [], picked = '';
+    var isDrill = skill === 'drills' && !!RioQuizGen.drillSeed;
+    var drillDay = today || localDay(), drillSet = 0, drillLevel = 0;
+    var seed, questions, quizId, total, i, given, rights, picked = '';
     var root = el('div', { class: 'quiz-wrap', id: 'quiz' });
-    root.setAttribute('data-skill', skill);
-    root.setAttribute('data-seed', String(seed));
+    var nameLine = el('div', { class: 'date', id: 'quizSkillName', text: label });
     var head = el('header', { class: 'top' }, [
       el('div', { class: 'quiz-top' }, [el('a', { class: 'back-home', href: homeHref, text: '\ud83c\udfe0 Home' })]),
-      el('h1', { text: 'Mini quiz' }),
-      el('div', { class: 'date', id: 'quizSkillName', text: label }),
+      el('h1', { text: isDrill ? 'Daily drills' : 'Mini quiz' }),
+      nameLine,
     ]);
+    var banner = el('div', { class: 'drill-banner', id: 'drillBanner', hidden: '' });
     var card = el('div', { class: 'quiz-card', id: 'quizCard' });
     root.appendChild(head);
+    root.appendChild(banner);
     root.appendChild(card);
     container.appendChild(root);
+    // One round = one quiz (5 questions) or one drill set (6 questions). Drill sets never run out: finishing one starts the next.
+    function newRound() {
+      if (isDrill) {
+        drillSet = nextDrillSet(drillDay);
+        seed = RioQuizGen.drillSeed(drillDay, drillSet);
+        drillLevel = RioQuizGen.drillInfo(seed).level;
+        nameLine.textContent = 'x-intercepts & forms \u00B7 set ' + drillSet + ' \u00B7 level ' + drillLevel;
+      } else {
+        seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+        if (!seed) seed = 1;
+      }
+      questions = RioQuizGen.generate(skill, seed);
+      total = questions.length;
+      quizId = (isDrill ? 'dq_' : 'mq_') + (seed.toString(36) + Math.floor(Math.random() * 1e9).toString(36)).replace(/[^a-z0-9]/g, '').slice(0, 12);
+      i = 0; given = []; rights = []; picked = '';
+      root.setAttribute('data-skill', skill);
+      root.setAttribute('data-seed', String(seed));
+    }
+    newRound();
 
     function scratchBtn(q) {
       return el('button', {
@@ -3536,7 +3808,7 @@ var RioQuiz = (function () {
     }
     function keys(input) {
       var box = el('div', { class: 'quiz-keys', id: 'quizKeys' });
-      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', '/', 'x', 'y', '(', ')', '+', '\u2212', '=', '\u232b'].forEach(function (k) {
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', '/', 'x', 'y', '(', ')', ',', '+', '\u2212', '=', '\u232b'].forEach(function (k) {
         box.appendChild(el('button', {
           type: 'button', class: (k === '+' || k === '\u2212' || k === '=' || k === '\u232b') ? 'op' : '', text: k,
           onclick: function () {
@@ -3552,7 +3824,7 @@ var RioQuiz = (function () {
       var q = questions[i];
       picked = '';
       card.innerHTML = '';
-      card.appendChild(el('div', { class: 'quiz-k', text: 'QUESTION ' + (i + 1) + ' OF 5' }));
+      card.appendChild(el('div', { class: 'quiz-k', text: 'QUESTION ' + (i + 1) + ' OF ' + total }));
       card.appendChild(el('div', { class: 'quiz-prompt', id: 'quizPrompt', text: q.prompt }));
       if (q.graph) card.appendChild(graphNode(q.graph));
       if (q.kind === 'choice' && q.choices) {
@@ -3568,8 +3840,10 @@ var RioQuiz = (function () {
         });
         card.appendChild(choices);
       } else {
-        var input = el('input', { id: 'quizAnswer', type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'Your answer', 'aria-label': 'Your answer' });
+        var ph = q.drill === 'x-intercept' ? '(x, 0)' : q.drill === 'to-standard' ? 'Ax + By = C' : q.drill === 'to-slope-intercept' ? 'y = mx + b' : 'Your answer';
+        var input = el('input', { id: 'quizAnswer', type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: ph, 'aria-label': 'Your answer', inputmode: 'text' });
         card.appendChild(input);
+        if (q.drill) card.appendChild(el('div', { class: 'drill-form', text: q.drill === 'x-intercept' ? 'Type the point, like (4, 0). Just the x number is OK too.' : q.drill === 'to-standard' ? 'Whole numbers, x and y on the left, like 3x \u2212 2y = 8.' : 'Get y by itself, like y = \u22122x + 5 or y = (2/3)x \u2212 1.' }));
         card.appendChild(keys(input));
       }
       card.appendChild(scratchBtn(q));
@@ -3589,19 +3863,25 @@ var RioQuiz = (function () {
         fb0.textContent = q.kind === 'choice' ? 'Tap one of the choices first.' : 'Type an answer first.';
         return;
       }
-      var right = RioQuizGen.equivalent(answer, q.answer);
+      var right = RioQuizGen.checkAnswer ? RioQuizGen.checkAnswer(q, answer) : RioQuizGen.equivalent(answer, q.answer);
       given[i] = answer;
       rights[i] = right;
       var fb = el('div', { class: 'quiz-fb ' + (right ? 'good' : 'bad'), id: 'quizFeedback' });
       fb.appendChild(el('div', { class: 'quiz-k', text: right ? 'YES!' : 'NOT QUITE' }));
-      fb.appendChild(el('p', { text: right ? 'That is right.' : q.hint }));
+      var sameLine = false;
+      try { sameLine = !right && q.drill && q.drill !== 'x-intercept' && RioQuizGen.equivalent(answer, q.answer); } catch (e) {}
+      var tip = '';
+      if (right && q.drill === 'to-standard' && q.check && /^\s*[-\u2212]/.test(answer)) tip = ' Tip: teachers usually want A positive, like ' + q.answer + '.';
+      fb.appendChild(el('p', { text: right ? 'That is right.' + tip
+        : sameLine ? (q.drill === 'to-standard' ? 'That is the same line, but not standard form. Use whole numbers with x and y on the left and the number on the right.' : 'That is the same line, but y is not by itself yet.')
+        : q.hint }));
       if (!right) fb.appendChild(el('p', { text: 'The answer is ' + q.answer + '.' }));
       fb.appendChild(el('div', { class: 'steps', text: q.steps }));
       var btn = document.getElementById('quizCheck');
       btn.parentNode.replaceChild(fb, btn);
       var next = el('button', {
-        type: 'button', class: 'btn', id: 'quizNext', text: i === 4 ? 'See my score' : 'Next question',
-        onclick: function () { if (i === 4) finish(); else { i++; showQ(); } },
+        type: 'button', class: 'btn', id: 'quizNext', text: i === total - 1 ? (isDrill ? 'Finish set ' + drillSet : 'See my score') : 'Next question',
+        onclick: function () { if (i === total - 1) finish(); else { i++; showQ(); } },
       });
       card.appendChild(next);
       if (input) input.disabled = true;
@@ -3610,18 +3890,20 @@ var RioQuiz = (function () {
     }
     function finish() {
       var score = rights.filter(Boolean).length;
-      var star = score >= 4;
+      var star = score >= total - 1;
       var recQuestions = questions.map(function (q, n) {
         return { n: n + 1, prompt: q.prompt, expected: q.answer, given: given[n] || '', right: !!rights[n] };
       });
-      var rec = { id: quizId, skill: skill, label: label, at: new Date().toISOString(), score: score, total: 5, star: star, questions: recQuestions };
+      var rec = { id: quizId, skill: skill, label: label, at: new Date().toISOString(), score: score, total: total, star: star, questions: recQuestions };
+      if (isDrill) { rec.day = drillDay; rec.set = drillSet; }
       var list = loadHist();
       list.push(rec);
       saveHist(list);
+      if (isDrill) { finishDrill(rec); return; }
       card.innerHTML = '';
       var end = el('div', { class: 'quiz-end', id: 'quizDone' });
       end.appendChild(el('div', { class: 'big', text: star ? '\ud83c\udf89' : '\ud83d\udcaa' }));
-      end.appendChild(el('h2', { text: score + ' out of 5' }));
+      end.appendChild(el('h2', { text: score + ' out of ' + total }));
       end.appendChild(el('p', { text: star ? 'Awesome! You really practiced ' + label + '.' : 'Good practice. The tricky ones are worth another try.' }));
       if (star) end.appendChild(el('p', { class: 'quiz-stars', text: 'You earned a practice star on this phone.' }));
       var tok = el('div', { class: 'quiz-tokens', id: 'quizTokens', hidden: '' });
@@ -3638,10 +3920,26 @@ var RioQuiz = (function () {
       card.appendChild(end);
       send(rec, sent, tok);
     }
+    // Drill set done: show how it went in a banner and start the next set right away (new seed, new numbers).
+    function finishDrill(rec) {
+      var sentSeed = seed;
+      bumpDrillSet(drillDay, drillSet);
+      banner.innerHTML = '';
+      banner.hidden = false;
+      banner.appendChild(el('div', { text: (rec.score >= rec.total - 1 ? '\uD83C\uDF89 ' : '\uD83D\uDCAA ') + 'Set ' + rec.set + ' done: ' + rec.score + ' out of ' + rec.total + ' right. Here is a new set!' }));
+      var tok = el('div', { class: 'quiz-tokens', id: 'quizTokens', hidden: '' });
+      var sent = el('div', { class: 'muted', id: 'quizSent', text: 'Saving for Dad\u2026' });
+      banner.appendChild(tok);
+      banner.appendChild(sent);
+      newRound();
+      showQ();
+      try { window.scrollTo(0, 0); } catch (e) {}
+      send(rec, sent, tok, sentSeed);
+    }
     // The server re-checks every answer (it rebuilds the questions from the seed) and decides the tokens: 1 per right answer,
     // at most 200 practice tokens a day. Sending the same quiz again never pays twice.
-    function send(rec, sent, tok) {
-      var payload = { id: rec.id, skill: rec.skill, seed: seed, score: rec.score, total: rec.total, questions: rec.questions };
+    function send(rec, sent, tok, seedUsed) {
+      var payload = { id: rec.id, skill: rec.skill, seed: seedUsed || seed, score: rec.score, total: rec.total, questions: rec.questions };
       try {
         google.script.run
           .withSuccessHandler(function (res) {
@@ -3653,7 +3951,7 @@ var RioQuiz = (function () {
                 tok.hidden = false;
                 if (res.capped) sent.textContent = 'That is the most practice tokens for today. Sent to Dad.';
               } else if (res.capped) {
-                tok.textContent = 'No more practice tokens today (the limit is 200). Great practice anyway!';
+                tok.textContent = (res.dailyLeft === 0 ? 'No more practice tokens today (the limit is 200).' : 'No new tokens for that one.') + ' Great practice anyway!';
                 tok.className = 'quiz-tokens small'; tok.hidden = false;
               }
               try { if (window.RioInbox && RioInbox.state && RioInbox.state()) RioInbox.load(); } catch (e) {}
@@ -3671,7 +3969,7 @@ var RioQuiz = (function () {
   }
 
   ensureCss();
-  return { practiceCard: practiceCard, historyCard: historyCard, mount: mount, loadHist: loadHist };
+  return { practiceCard: practiceCard, drillsCard: drillsCard, historyCard: historyCard, mount: mount, loadHist: loadHist };
 })();
 /* ==== RIO-QUIZ END ==== */
 </script>
